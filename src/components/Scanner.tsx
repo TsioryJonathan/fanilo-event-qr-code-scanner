@@ -91,7 +91,7 @@ export default function Scanner({ onScanSuccess }: QrScannerProps) {
       </div>
 
       <p className="text-xs text-muted-foreground mt-2 text-center">
-        Positionnez le QR code à l'intérieur du cadre de scan
+        Positionnez le QR code à l&apos;intérieur du cadre de scan
       </p>
     </div>
   );
