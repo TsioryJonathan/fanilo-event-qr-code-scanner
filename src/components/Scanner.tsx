@@ -1,65 +1,90 @@
-"use client";
+"use client"
 
-import { useEffect, useRef, useState } from "react";
-import { Html5Qrcode } from "html5-qrcode";
-import { Button } from "@/components/ui/button";
-import { Camera, CameraOff } from "lucide-react";
+import { useEffect, useRef, useState } from "react"
+import { Html5Qrcode } from "html5-qrcode"
+import { Button } from "@/components/ui/button"
+import { Camera, CameraOff } from "lucide-react"
 
 interface QrScannerProps {
-  onScanSuccess: (data: string) => void;
+  onScanSuccess: (data: string) => void
 }
 
 export default function Scanner({ onScanSuccess }: QrScannerProps) {
-  const [isScanning, setIsScanning] = useState(false);
-  const [permissionDenied, setPermissionDenied] = useState(false);
-  const scannerRef = useRef<Html5Qrcode | null>(null);
-  const scannerDivId = "qr-reader";
+  const [isScanning, setIsScanning] = useState(false)
+  const [permissionDenied, setPermissionDenied] = useState(false)
+  const scannerRef = useRef<Html5Qrcode | null>(null)
+  const scannerDivId = "qr-reader"
 
-  const stopScannerSafely = async () => {
+  // Clean up function to safely stop scanner
+  const safelyStopScanner = async () => {
     if (scannerRef.current && scannerRef.current.isScanning) {
       try {
-        await scannerRef.current.stop();
+        await scannerRef.current.stop()
+        setIsScanning(false)
       } catch (error) {
-        console.error("Error stopping scanner:", error);
+        console.error("Error stopping scanner:", error)
       }
     }
-    setIsScanning(false);
-  };
+  }
 
   useEffect(() => {
-    scannerRef.current = new Html5Qrcode(scannerDivId);
+    // Initialize scanner instance once
+    scannerRef.current = new Html5Qrcode(scannerDivId)
+
+    // Clean up on component unmount
     return () => {
-      stopScannerSafely();
-    };
-  }, []);
+      safelyStopScanner()
+      // Don't try to clear the scanner instance here
+      // Just let it be garbage collected
+    }
+  }, [])
 
   const startScanner = async () => {
-    if (!scannerRef.current || isScanning) return;
+    if (!scannerRef.current || isScanning) return
 
     try {
       await scannerRef.current.start(
         { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        (decodedText) => {
-          alert(`QR détecté : ${decodedText}`); // 👈 Affiche une alerte avec le code détecté
-          onScanSuccess(decodedText);
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
         },
-        () => {}
-      );
+        async (decodedText) => {
+          // First update the state to show we're stopping
+          setIsScanning(false)
 
-      setIsScanning(true);
-      setPermissionDenied(false);
+          // Then pass the result to the parent component
+          onScanSuccess(decodedText)
+
+          // Finally, safely stop the scanner
+          try {
+            if (scannerRef.current && scannerRef.current.isScanning) {
+              await scannerRef.current.stop()
+            }
+          } catch (error) {
+            console.error("Error stopping scanner after successful scan:", error)
+          }
+        },
+        () => {}, // Empty error handler to avoid console noise
+      )
+
+      setIsScanning(true)
+      setPermissionDenied(false)
     } catch (err) {
-      console.error("Error starting scanner:", err);
-      setPermissionDenied(true);
-      setIsScanning(false);
+      console.error("Error starting scanner:", err)
+      setPermissionDenied(true)
+      setIsScanning(false)
     }
-  };
+  }
+
+  const stopScanner = () => {
+    safelyStopScanner()
+  }
 
   return (
-    <div className="flex flex-col items-center w-100 h-200">
+    <div className="flex flex-col items-center">
       <div className="w-full h-64 bg-muted rounded-lg overflow-hidden relative">
-        <div id={scannerDivId} className="w-90 h-100"></div>
+        <div id={scannerDivId} className="w-full h-full"></div>
 
         {!isScanning && !permissionDenied && (
           <div className="absolute inset-0 flex items-center justify-center bg-muted">
@@ -84,15 +109,14 @@ export default function Scanner({ onScanSuccess }: QrScannerProps) {
             Start Scanning
           </Button>
         ) : (
-          <p className="text-center text-sm text-muted-foreground w-full">
-            Scanning…
-          </p>
+          <Button onClick={stopScanner} variant="outline" className="w-full">
+            <CameraOff className="mr-2 h-4 w-4" />
+            Stop Scanning
+          </Button>
         )}
       </div>
 
-      <p className="text-xs text-muted-foreground mt-2 text-center">
-        Positionnez le QR code à l&apos;intérieur du cadre de scan
-      </p>
+      <p className="text-xs text-muted-foreground mt-2 text-center">Position the QR code within the scanner frame</p>
     </div>
-  );
+  )
 }
