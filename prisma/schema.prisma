@@ -1,0 +1,19 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Billet {
+  id         Int     @id @default(autoincrement())
+  code       String  @unique
+  type       String
+  categorie  String
+  scan_limit Int
+  scans_used Int     @default(0)
+  numero     String  @unique
+  image_path String
+}
