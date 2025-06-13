@@ -48,7 +48,7 @@ export default function Home() {
   const resetScan = useCallback(() => {
     setScanResult(null);
     setScanStatus("idle");
-    setAttendeeData(null);
+    setAttendeeData("");
   }, []);
 
   const handleTabChange = (value: string) => {
