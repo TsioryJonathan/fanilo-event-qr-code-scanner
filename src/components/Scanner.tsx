@@ -5,6 +5,7 @@ import { Html5Qrcode } from "html5-qrcode"
 import { Button } from "@/components/ui/button"
 import { Camera, CameraOff } from "lucide-react"
 import styles from "./Scanner.module.css"
+import toast from "@/components/ui/toast"
 
 interface QrScannerProps {
   onScanSuccess: (data: string) => void
@@ -13,6 +14,13 @@ interface QrScannerProps {
 export default function Scanner({ onScanSuccess }: QrScannerProps) {
   const [isScanning, setIsScanning] = useState(false)
   const [permissionDenied, setPermissionDenied] = useState(false)
+  const [scanResult, setScanResult] = useState({
+    success: false,
+    ticket: null,
+    message: "",
+    remainingScans: 0,
+    error: "",
+  })
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const scannerDivId = "qr-reader"
   const eventName = "FANILO FESTIVAL"
@@ -33,7 +41,9 @@ export default function Scanner({ onScanSuccess }: QrScannerProps) {
         await scannerRef.current.stop()
         setIsScanning(false)
       } catch (error) {
-        console.error("Error stopping scanner:", error)
+        setScanResult({
+          error: error instanceof Error ? error.message : 'An error occurred',
+        });
       }
     }
   }
@@ -75,6 +85,14 @@ export default function Scanner({ onScanSuccess }: QrScannerProps) {
           } catch (error) {
             console.error("Error stopping scanner after successful scan:", error)
           }
+
+          const result = JSON.parse(decodedText)
+          if (result.remainingScans === 0) {
+            toast.warning(result.message);
+          } else {
+            toast.success(result.message);
+          }
+          setScanResult(result)
         },
         () => {}, // Empty error handler to avoid console noise
       )
@@ -82,7 +100,7 @@ export default function Scanner({ onScanSuccess }: QrScannerProps) {
       setIsScanning(true)
       setPermissionDenied(false)
     } catch (err) {
-      console.error("Error starting scanner:", err)
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
       setPermissionDenied(true)
       setIsScanning(false)
     }
