@@ -1,6 +1,15 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Supprimer le défilement horizontal */
+html {
+  overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -41,6 +50,10 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-billet-bleu: #3999ca;
+  --color-billet-orange: #ee6726;
+  --color-billet-bleu-light: #2a7a9a;
+  --color-billet-orange-light: #f59e72;
 }
 
 :root {

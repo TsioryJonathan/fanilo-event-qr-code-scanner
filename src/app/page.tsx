@@ -48,7 +48,7 @@ export default function Home() {
   };
 
   return (
-    <main className="container max-w-md mx-auto p-4">
+    <main className="container max-w-md mx-auto px-4">
       <Card className="border-2">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Event QR Scanner</CardTitle>

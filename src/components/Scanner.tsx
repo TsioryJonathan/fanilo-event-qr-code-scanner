@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { Html5Qrcode } from "html5-qrcode"
 import { Button } from "@/components/ui/button"
 import { Camera, CameraOff } from "lucide-react"
+import styles from "./Scanner.module.css"
 
 interface QrScannerProps {
   onScanSuccess: (data: string) => void
@@ -14,6 +15,16 @@ export default function Scanner({ onScanSuccess }: QrScannerProps) {
   const [permissionDenied, setPermissionDenied] = useState(false)
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const scannerDivId = "qr-reader"
+  const eventName = "FANILO FESTIVAL"
+  const [isEventNameAnimated, setIsEventNameAnimated] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsEventNameAnimated(true)
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [])
 
   // Clean up function to safely stop scanner
   const safelyStopScanner = async () => {
@@ -82,41 +93,64 @@ export default function Scanner({ onScanSuccess }: QrScannerProps) {
   }
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="w-full h-64 bg-muted rounded-lg overflow-hidden relative">
-        <div id={scannerDivId} className="w-full h-full"></div>
+    <div className="flex flex-col items-center w-full max-w-2xl mx-auto ">
+      <div className="mb-4">
+        <h1 
+          className={`${styles.eventName} ${isEventNameAnimated ? 'animate-fade-in' : ''}`}
+        >
+          {eventName}
+        </h1>
+      </div>
+
+      <div className={styles.scannerFrame}>
+        <div id={scannerDivId} className="w-full h-full" />
+        
+        <div className={styles.scannerGrid}>
+          {Array.from({ length: 9 }).map((_, i) => (
+            <div key={i} />
+          ))}
+        </div>
 
         {!isScanning && !permissionDenied && (
-          <div className="absolute inset-0 flex items-center justify-center bg-muted">
-            <Camera className="h-12 w-12 text-muted-foreground opacity-50" />
+          <div className={styles.scannerOverlay}>
+            <Camera className={`${styles.scannerIcon} h-16 w-16`} />
           </div>
         )}
 
         {permissionDenied && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted p-4 text-center">
-            <CameraOff className="h-12 w-12 text-muted-foreground opacity-50 mb-2" />
-            <p className="text-sm text-muted-foreground">
+          <div className={`${styles.scannerOverlay} ${styles.errorState}`}>
+            <CameraOff className={`${styles.scannerIcon} h-16 w-16`} />
+            <p className="mt-4 text-sm">
               Camera access denied. Please allow camera access to scan QR codes.
             </p>
           </div>
         )}
       </div>
 
-      <div className="mt-4 w-full">
+      <div className="mt-8 w-full">
         {!isScanning ? (
-          <Button onClick={startScanner} className="w-full">
-            <Camera className="mr-2 h-4 w-4" />
-            Start Scanning
+          <Button 
+            onClick={startScanner} 
+            className="bg-billet-bleu hover:bg-billet-bleu/90 text-white w-full cursor-pointer border border-billet-orange"
+          >
+            <Camera className="mr-2 h-5 w-5 text-white" />
+            <span>Start Scanning</span>
           </Button>
         ) : (
-          <Button onClick={stopScanner} variant="outline" className="w-full">
-            <CameraOff className="mr-2 h-4 w-4" />
-            Stop Scanning
+          <Button 
+            onClick={stopScanner} 
+            variant="outline" 
+            className="border-billet-orange text-billet-orange hover:bg-billet-orange/10 w-full cursor-pointer"
+          >
+            <CameraOff className="mr-2 h-5 w-5 text-billet-orange" />
+            <span>Stop Scanning</span>
           </Button>
         )}
       </div>
 
-      <p className="text-xs text-muted-foreground mt-2 text-center">Position the QR code within the scanner frame</p>
+      <p className={`${styles.scannerText} text-center`}>
+        Position the QR code within the scanner frame
+      </p>
     </div>
   )
 }
