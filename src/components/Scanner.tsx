@@ -57,9 +57,9 @@ export default function Scanner({ onScanSuccess }: QrScannerProps) {
   };
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center w-100 h-200">
       <div className="w-full h-64 bg-muted rounded-lg overflow-hidden relative">
-        <div id={scannerDivId} className="w-full h-full"></div>
+        <div id={scannerDivId} className="w-90 h-100"></div>
 
         {!isScanning && !permissionDenied && (
           <div className="absolute inset-0 flex items-center justify-center bg-muted">
