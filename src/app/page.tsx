@@ -23,6 +23,7 @@ import {
 import Scanner from "../components/Scanner";
 import EventInfo from "../components/EventInfo";
 
+
 export default function Home() {
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [scanStatus, setScanStatus] = useState<"idle" | "success" | "error">(
@@ -30,6 +31,7 @@ export default function Home() {
   );
   const [attendeeData, setAttendeeData] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("scan");
+  console.log(scanResult)
 
   const handleScanSuccess = useCallback((data: string) => {
     setScanResult(data);

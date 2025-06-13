@@ -1,4 +1,4 @@
-import { CalendarDays, Clock, MapPin, Users } from "lucide-react"
+import { CalendarDays, Clock, MapPin, Users } from "lucide-react";
 
 export default function EventInfo() {
   // In a real app, this would be fetched from your backend
@@ -8,7 +8,7 @@ export default function EventInfo() {
     time: "9:00 AM - 6:00 PM",
     location: "Convention Center, San Francisco",
     attendees: 1250,
-  }
+  };
 
   return (
     <div className="py-4">
@@ -41,7 +41,9 @@ export default function EventInfo() {
           </div>
           <div>
             <p className="font-medium">Location</p>
-            <p className="text-sm text-muted-foreground">{eventDetails.location}</p>
+            <p className="text-sm text-muted-foreground">
+              {eventDetails.location}
+            </p>
           </div>
         </div>
 
@@ -51,7 +53,9 @@ export default function EventInfo() {
           </div>
           <div>
             <p className="font-medium">Attendees</p>
-            <p className="text-sm text-muted-foreground">{eventDetails.attendees} registered</p>
+            <p className="text-sm text-muted-foreground">
+              {eventDetails.attendees} registered
+            </p>
           </div>
         </div>
       </div>
@@ -59,12 +63,12 @@ export default function EventInfo() {
       <div className="mt-6 p-3 bg-muted rounded-md text-sm">
         <p className="font-medium">Scanner Instructions:</p>
         <ol className="list-decimal ml-5 mt-1 text-muted-foreground space-y-1">
-          <li>Switch to the "Scan QR" tab</li>
-          <li>Click "Start Scanning" and allow camera access</li>
-          <li>Point camera at attendee's QR code</li>
+          <li>Switch to the &quot;Scan QR&quot; tab</li>
+          <li>Click &quot;Start Scanning&quot; and allow camera access</li>
+          <li>Point camera at attendee&apos;s QR code</li>
           <li>Verify attendee information after successful scan</li>
         </ol>
       </div>
     </div>
-  )
+  );
 }
