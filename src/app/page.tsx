@@ -18,25 +18,75 @@ import {
   RotateCcw,
   CalendarDays,
 } from "lucide-react";
-import Scanner from "../components/Scanner";
+import Scanner from "@/components/Scanner"; // Chemin corrigé
+import { ToastProvider, useToast } from "@/components/ui/toast";
 
-export default function Home() {
-  const [scanResult, setScanResult] = useState<string | null>(null);
-  const [scanStatus, setScanStatus] = useState<"idle" | "success" | "error">(
-    "idle"
-  );
-
+function HomeContent() {
+  const [scanStatus, setScanStatus] = useState<"idle" | "success" | "error">("idle");
+  const [notification, setNotification] = useState<{ 
+    type: 'success' | 'error'; 
+    message: string 
+  } | null>(null);
   const [activeTab, setActiveTab] = useState("scan");
+  const { toast } = useToast();
 
-  console.log(scanResult);
+  const handleScanSuccess = useCallback(async (data: string) => {
+    try {
+      const response = await fetch('/api/scanner', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code: data }),
+      });
 
-  const handleScanSuccess = useCallback((data: string) => {
-    alert(data);
-  }, []);
+      if (!response.ok) {
+        const error = await response.json();
+        setScanStatus('error');
+        setNotification({ type: 'error', message: error.message });
+        
+        // Afficher le toast d'erreur
+        toast({
+          variant: "destructive",
+          title: "Erreur de validation",
+          description: error.message,
+        });
+        return;
+      }
+
+      const result = await response.json();
+      setScanStatus('success');
+      setNotification({ type: 'success', message: result.message });
+      
+      // Afficher le toast de succès
+      toast({
+        title: "Succès !",
+        description: result.message,
+      });
+    } catch (error) {
+      console.error('Scan error:', error);
+      setScanStatus('error');
+      const errorMessage = 'Une erreur est survenue lors de la validation du billet';
+      setNotification({ type: 'error', message: errorMessage });
+      
+      // Afficher le toast d'erreur
+      toast({
+        variant: "destructive",
+        title: "Erreur système",
+        description: errorMessage,
+      });
+    }
+
+    // Réinitialiser l'état après 3 secondes
+    setTimeout(() => {
+      setScanStatus('idle');
+      setNotification(null);
+    }, 3000);
+  }, [toast]);
 
   const resetScan = useCallback(() => {
-    setScanResult(null);
     setScanStatus("idle");
+    setNotification(null);
   }, []);
 
   const handleTabChange = (value: string) => {
@@ -72,48 +122,88 @@ export default function Home() {
                 Event Info
               </TabsTrigger>
             </TabsList>
+            
             <TabsContent value="scan" className="mt-4">
               {scanStatus === "idle" ? (
                 <Scanner onScanSuccess={handleScanSuccess} />
-              ) : scanStatus === "success" ? (
+              ) : (
                 <div className="flex flex-col items-center gap-4 py-6">
-                  <div className="rounded-full bg-green-100 p-3">
-                    <CheckCircle className="h-8 w-8 text-green-600" />
+                  <div className={`rounded-full p-3 ${
+                    scanStatus === "success" ? "bg-green-100" : "bg-red-100"
+                  }`}>
+                    {scanStatus === "success" ? (
+                      <CheckCircle className="h-8 w-8 text-green-600" />
+                    ) : (
+                      <XCircle className="h-8 w-8 text-red-600" />
+                    )}
                   </div>
                   <div className="text-center">
                     <h3 className="text-xl font-medium">
-                      Check-in Successful!
+                      {scanStatus === "success" ? "Check-in Successful!" : "Invalid QR Code"}
                     </h3>
                     <p className="text-muted-foreground mt-1">
-                      Attendee verified
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-4 py-6">
-                  <div className="rounded-full bg-red-100 p-3">
-                    <XCircle className="h-8 w-8 text-red-600" />
-                  </div>
-                  <div className="text-center">
-                    <h3 className="text-xl font-medium">Invalid QR Code</h3>
-                    <p className="text-muted-foreground mt-1">
-                      This QR code is not valid for this event
+                      {notification?.message || "Attendee verified"}
                     </p>
                   </div>
                 </div>
               )}
             </TabsContent>
+            
+            {/* Ajout du contenu pour l'onglet event */}
+            <TabsContent value="event" className="mt-4">
+              <div className="text-center py-6">
+                <h3 className="text-lg font-medium mb-4">Event Information</h3>
+                <div className="space-y-3 text-left">
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Event Name</p>
+                    <p className="font-medium">Annual Conference 2025</p>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Date</p>
+                    <p className="font-medium">June 14, 2025</p>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Location</p>
+                    <p className="font-medium">Conference Center</p>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Status</p>
+                    <p className="font-medium text-green-600">Active</p>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
           </Tabs>
         </CardContent>
-        <CardFooter className="flex justify-center">
+        
+        <CardFooter className="flex justify-center gap-4">
           {scanStatus !== "idle" && (
             <Button variant="outline" onClick={resetScan}>
               <RotateCcw className="mr-2 h-4 w-4" />
               Scan Another
             </Button>
           )}
+          {/* Boutons de test conditionnels selon l'environnement */}
+          {process.env.NODE_ENV === 'development' && (
+            <>
+              <Button variant="outline" onClick={() => handleScanSuccess('test-code-123')}>
+                Test Valid QR Code
+              </Button>
+              <Button variant="outline" onClick={() => handleScanSuccess('invalid-code')}>
+                Test Invalid QR Code
+              </Button>
+            </>
+          )}
         </CardFooter>
       </Card>
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <ToastProvider>
+      <HomeContent />
+    </ToastProvider>
   );
 }
