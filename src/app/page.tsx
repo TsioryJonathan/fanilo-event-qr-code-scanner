@@ -23,11 +23,11 @@ import {
 } from "@/components/ui/dialog";
 
 interface TicketDetails {
-  id?: number;
-  type?: string;
-  numero?: string;
-  scan_limit?: number;
-  scans_used?: number;
+  id: number;
+  type: string;
+  numero: string;
+  scan_limit: number;
+  scans_used: number;
   scans?: string[]; // Scan timestamps
 }
 
@@ -105,8 +105,6 @@ function HomeContent() {
     setTicketDetails(null);
   }, []);
 
-  console.log(ticketDetails);
-
   return (
     <main className="container max-w-md mx-auto px-8">
       <Card className="border-2">
@@ -152,7 +150,7 @@ function HomeContent() {
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <span className="text-muted-foreground">Numero:</span>
-                        <span>{ticketDetails.numero || "N/A"}</span>
+                        <span>{ticketDetails.numero}</span>
                         <span className="text-muted-foreground">Type:</span>
                         <span>{ticketDetails.type || "N/A"}</span>
                         <span className="text-muted-foreground">
@@ -214,6 +212,7 @@ function HomeContent() {
                                 {new Date(scanDate).toLocaleString("en-US", {
                                   dateStyle: "medium",
                                   timeStyle: "short",
+                                  hour12: false,
                                 })}
                               </span>
                             </li>

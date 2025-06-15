@@ -17,14 +17,17 @@ export async function POST(request: Request) {
     // Get the QR code from the request body
     const { code } = await request.json();
 
-    console.log(code)
+    console.log(code);
 
     if (!code) {
-      return NextResponse.json({ error: "QR code is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "QR code is required" },
+        { status: 400 }
+      );
     }
 
     // Fetch the ticket from the database with scans
-    const ticket = await prisma.billet.findUnique({
+    const ticket = (await prisma.billet.findUnique({
       where: { code },
       select: {
         id: true,
@@ -36,7 +39,7 @@ export async function POST(request: Request) {
           select: { createdAt: true },
         },
       },
-    }) as TicketWithScans | null;
+    })) as TicketWithScans | null;
 
     if (!ticket) {
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
@@ -52,7 +55,7 @@ export async function POST(request: Request) {
           error: "Ticket has reached its maximum scan limit",
           details: {
             type: ticket.type,
-            number: ticket.numero,
+            numero: ticket.numero,
             scan_limit: ticket.scan_limit,
             scans_used: ticket.scans_used,
             scans: ticket.scans.map((scan) => scan.createdAt.toISOString()),
@@ -63,7 +66,7 @@ export async function POST(request: Request) {
     }
 
     // Update scan count and record scan in a transaction
-    const updatedTicket = await prisma.$transaction(async (tx) => {
+    const updatedTicket = (await prisma.$transaction(async (tx) => {
       await tx.billet.update({
         where: { id: ticket.id },
         data: {
@@ -91,15 +94,19 @@ export async function POST(request: Request) {
           },
         },
       });
-    }) as TicketWithScans | null;
+    })) as TicketWithScans | null;
 
     // Check if updatedTicket is null
     if (!updatedTicket) {
-      return NextResponse.json({ error: "Failed to update ticket" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Failed to update ticket" },
+        { status: 500 }
+      );
     }
 
     // Calculate new remaining scans
-    const newRemainingScans = updatedTicket.scan_limit - updatedTicket.scans_used;
+    const newRemainingScans =
+      updatedTicket.scan_limit - updatedTicket.scans_used;
 
     // Generate appropriate message based on remaining scans
     let message = "";
@@ -126,6 +133,9 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Error scanning ticket:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
