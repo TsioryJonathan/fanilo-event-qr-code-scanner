@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dialog";
 
 interface TicketDetails {
+  id?: number;
   type?: string;
   number?: string;
   scan_limit?: number;
@@ -146,8 +147,8 @@ function HomeContent() {
                         <h4 className="font-medium">Ticket Details</h4>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
-                        <span className="text-muted-foreground">Number:</span>
-                        <span>{ticketDetails.number || "N/A"}</span>
+                        <span className="text-muted-foreground">ID:</span>
+                        <span>{ticketDetails.id || "N/A"}</span>
                         <span className="text-muted-foreground">Type:</span>
                         <span>{ticketDetails.type || "N/A"}</span>
                         <span className="text-muted-foreground">Scans Used:</span>
