@@ -48,8 +48,8 @@ export default function Scanner({ onScanSuccess }: QrScannerProps) {
       console.error('Error processing scan result:', err)
       toast({
         variant: "destructive",
-        title: "Erreur",
-        description: "Une erreur est survenue pendant le traitement du scan."
+        title: "Error",
+        description: "An error occurred during scan processing."
       })
     } finally {
       setIsProcessing(false)
@@ -80,20 +80,20 @@ export default function Scanner({ onScanSuccess }: QrScannerProps) {
         setPermissionDenied(true)
         toast({
           variant: "destructive",
-          title: "Permission refusée",
-          description: "L'accès à la caméra a été refusé. Autorisez l'accès dans les paramètres du navigateur."
+          title: "Permission Denied",
+          description: "Camera access was denied. Please allow access in your browser settings."
         })
       } else if (err.name === 'NotFoundError') {
         toast({
           variant: "destructive",
-          title: "Caméra non trouvée",
-          description: "Aucune caméra n'a été détectée. Veuillez connecter un appareil caméra."
+          title: "Camera Not Found",
+          description: "No camera device detected. Please connect a camera."
         })
       } else {
         toast({
           variant: "destructive",
-          title: "Échec du démarrage",
-          description: "Impossible de démarrer la caméra. Essayez à nouveau."
+          title: "Failed to Start",
+          description: "Unable to start the camera. Please try again."
         })
       }
 
