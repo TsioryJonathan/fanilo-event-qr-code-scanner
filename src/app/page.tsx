@@ -48,7 +48,7 @@ function HomeContent() {
   const handleScanSuccess = useCallback(
     async (data: string) => {
       try {
-        const response = await fetch("http://localhost:3000/api/scanner", {
+        const response = await fetch("/api/scanner", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ code: data }),
