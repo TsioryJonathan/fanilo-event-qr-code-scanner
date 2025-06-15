@@ -1,0 +1,18 @@
+-- DropIndex
+DROP INDEX "Billet_numero_key";
+
+-- AlterTable
+ALTER TABLE "Billet" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+-- CreateTable
+CREATE TABLE "Scan" (
+    "id" SERIAL NOT NULL,
+    "billetId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Scan_pkey" PRIMARY KEY ("id")
+);
+
+-- AddForeignKey
+ALTER TABLE "Scan" ADD CONSTRAINT "Scan_billetId_fkey" FOREIGN KEY ("billetId") REFERENCES "Billet"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

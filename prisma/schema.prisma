@@ -1,19 +1,29 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
+model Billet {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  type        String
+  categorie   String
+  scan_limit  Int
+  scans_used  Int      @default(0)
+  numero      String
+  image_path  String
+  scans       Scan[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
 }
 
-model Billet {
-  id         Int     @id @default(autoincrement())
-  code       String  @unique
-  type       String
-  categorie  String
-  scan_limit Int
-  scans_used Int     @default(0)
-  numero     String  @unique
-  image_path String
+model Scan {
+  id        Int      @id @default(autoincrement())
+  billetId  Int
+  billet    Billet   @relation(fields: [billetId], references: [id])
+  createdAt DateTime @default(now())
 }

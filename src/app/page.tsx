@@ -10,90 +10,99 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
   Camera,
   CheckCircle,
   XCircle,
   RotateCcw,
-  CalendarDays,
+  Ticket,
+  Clock,
 } from "lucide-react";
 import Scanner from "@/components/Scanner";
 import { ToastProvider, useToast } from "@/components/ui/toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+interface TicketDetails {
+  type?: string;
+  number?: string;
+  scan_limit?: number;
+  scans_used?: number;
+  scans?: string[]; // Scan timestamps
+}
 
 function HomeContent() {
   const [scanStatus, setScanStatus] = useState<"idle" | "success" | "error">("idle");
-  const [notification, setNotification] = useState<{ 
-    type: 'success' | 'error'; 
-    message: string 
+  const [notification, setNotification] = useState<{
+    type: "success" | "error";
+    message: string;
   } | null>(null);
-  const [activeTab, setActiveTab] = useState("scan");
+  const [ticketDetails, setTicketDetails] = useState<TicketDetails | null>(null);
+  const [activeTab] = useState("scan");
   const { toast } = useToast();
 
   const handleScanSuccess = useCallback(async (data: string) => {
-    console.log('Scanning QR code:', data);
+    console.log("Scanning QR code:", data);
     try {
-      const response = await fetch('/api/scanner', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("https://localhost:3001/api/scanner", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code: data }),
       });
-      console.log('API response status:', response.status, 'OK:', response.ok);
+      console.log("API response status:", response.status, "OK:", response.ok);
       let result;
       try {
         result = await response.json();
       } catch (e) {
-        console.error('Failed to parse JSON:', e);
-        result = { message: `Non-JSON response: ${await response.text()}` };
+        console.error("Failed to parse JSON:", e);
+        result = { error: `Non-JSON response: ${await response.text()}` };
       }
-      console.log('API response body:', result);
+      console.log("API response body:", result);
       if (!response.ok) {
-        console.log('API error:', result);
-        setScanStatus('error');
-        setNotification({ type: 'error', message: result.message || 'Unknown error' });
+        console.log("API error:", result);
+        setScanStatus("error");
+        setNotification({ type: "error", message: result.error || "Unknown error" });
+        setTicketDetails(result.details || {});
         toast({
           variant: "destructive",
-          title: result.message?.includes('limit') ? 'Scan limit reached' : 'Validation Error',
-          description: result.message || 'Unknown error',
+          title: result.error?.includes("limit") ? "Scan Limit Reached" : "Validation Error",
+          description: result.error || "Unknown error",
         });
         return;
       }
-      console.log('API success:', result);
-      setScanStatus('success');
-      setNotification({ type: 'success', message: result.message });
+      console.log("API success:", result);
+      setScanStatus("success");
+      setNotification({ type: "success", message: result.message });
+      setTicketDetails(result.ticket || {});
       toast({
         title: "Success!",
         description: result.message,
       });
     } catch (error) {
-      console.error('Scan error:', error);
-      setScanStatus('error');
-      const errorMessage = 'Network error or server unavailable';
-      setNotification({ type: 'error', message: errorMessage });
+      console.error("Fetch error:", error);
+      setScanStatus("error");
+      const errorMessage = "Network error or server unavailable";
+      setNotification({ type: "error", message: errorMessage });
+      setTicketDetails(null);
       toast({
         variant: "destructive",
         title: "System Error",
         description: errorMessage,
       });
     }
-    setTimeout(() => {
-      setScanStatus('idle');
-      setNotification(null);
-    }, 3000);
   }, [toast]);
 
   const resetScan = useCallback(() => {
     setScanStatus("idle");
     setNotification(null);
+    setTicketDetails(null);
   }, []);
-
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-    // Reset scan when switching away from scan tab
-    if (value !== "scan" && scanStatus !== "idle") {
-      resetScan();
-    }
-  };
 
   return (
     <main className="container max-w-md mx-auto px-4">
@@ -105,20 +114,17 @@ function HomeContent() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs
-            value={activeTab}
-            onValueChange={handleTabChange}
-            className="w-full"
-          >
-            
+          <Tabs value={activeTab} className="w-full">
             <TabsContent value="scan" className="mt-4">
               {scanStatus === "idle" ? (
                 <Scanner onScanSuccess={handleScanSuccess} />
               ) : (
                 <div className="flex flex-col items-center gap-4 py-6">
-                  <div className={`rounded-full p-3 ${
-                    scanStatus === "success" ? "bg-green-100" : "bg-red-100"
-                  }`}>
+                  <div
+                    className={`rounded-full p-3 ${
+                      scanStatus === "success" ? "bg-green-100" : "bg-red-100"
+                    }`}
+                  >
                     {scanStatus === "success" ? (
                       <CheckCircle className="h-8 w-8 text-green-600" />
                     ) : (
@@ -133,18 +139,75 @@ function HomeContent() {
                       {notification?.message || "Attendee verified"}
                     </p>
                   </div>
+                  {ticketDetails && (
+                    <div className="mt-4 w-full text-left">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Ticket className="h-5 w-5 text-gray-600" />
+                        <h4 className="font-medium">Ticket Details</h4>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <span className="text-muted-foreground">Number:</span>
+                        <span>{ticketDetails.number || "N/A"}</span>
+                        <span className="text-muted-foreground">Type:</span>
+                        <span>{ticketDetails.type || "N/A"}</span>
+                        <span className="text-muted-foreground">Scans Used:</span>
+                        <span>{ticketDetails.scans_used ?? "N/A"}</span>
+                        <span className="text-muted-foreground">Scans Remaining:</span>
+                        <span>
+                          {ticketDetails.scan_limit && ticketDetails.scans_used != null
+                            ? ticketDetails.scan_limit - ticketDetails.scans_used
+                            : "N/A"}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </TabsContent>
           </Tabs>
         </CardContent>
-        
-        <CardFooter className="flex justify-center gap-4">
+        <CardFooter className="flex flex-col justify-center gap-4">
           {scanStatus !== "idle" && (
-            <Button variant="outline" onClick={resetScan}>
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Scan Another
-            </Button>
+            <>
+              <Button variant="outline" onClick={resetScan} className="w-full bg-billet-orange-light">
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Scan Another
+              </Button>
+              {ticketDetails?.scans && ticketDetails.scans.length > 0 && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full">
+                      <Clock className="mr-2 h-4 w-4" />
+                      View Scan History
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Scan History</DialogTitle>
+                    </DialogHeader>
+                    <div className="mt-4">
+                      {ticketDetails.scans.length === 0 ? (
+                        <p className="text-muted-foreground">No scans recorded.</p>
+                      ) : (
+                        <ul className="space-y-2">
+                          {ticketDetails.scans.map((scanDate, index) => (
+                            <li key={index} className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-gray-600" />
+                              <span>
+                                {new Date(scanDate).toLocaleString("en-US", {
+                                  dateStyle: "medium",
+                                  timeStyle: "short",
+                                })}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
+            </>
           )}
         </CardFooter>
       </Card>
