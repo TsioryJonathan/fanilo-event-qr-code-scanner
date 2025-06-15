@@ -18,7 +18,7 @@ import {
   RotateCcw,
   CalendarDays,
 } from "lucide-react";
-import Scanner from "@/components/Scanner"; // Chemin corrigé
+import Scanner from "@/components/Scanner";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 
 function HomeContent() {
@@ -31,53 +31,51 @@ function HomeContent() {
   const { toast } = useToast();
 
   const handleScanSuccess = useCallback(async (data: string) => {
+    console.log('Scanning QR code:', data);
     try {
       const response = await fetch('/api/scanner', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: data }),
       });
-
+      console.log('API response status:', response.status, 'OK:', response.ok);
+      let result;
+      try {
+        result = await response.json();
+      } catch (e) {
+        console.error('Failed to parse JSON:', e);
+        result = { message: `Non-JSON response: ${await response.text()}` };
+      }
+      console.log('API response body:', result);
       if (!response.ok) {
-        const error = await response.json();
+        console.log('API error:', result);
         setScanStatus('error');
-        setNotification({ type: 'error', message: error.message });
-        
-        // Afficher le toast d'erreur
+        setNotification({ type: 'error', message: result.message || 'Unknown error' });
         toast({
           variant: "destructive",
-          title: "Erreur de validation",
-          description: error.message,
+          title: result.message?.includes('limit') ? 'Scan limit reached' : 'Validation Error',
+          description: result.message || 'Unknown error',
         });
         return;
       }
-
-      const result = await response.json();
+      console.log('API success:', result);
       setScanStatus('success');
       setNotification({ type: 'success', message: result.message });
-      
-      // Afficher le toast de succès
       toast({
-        title: "Succès !",
+        title: "Success!",
         description: result.message,
       });
     } catch (error) {
       console.error('Scan error:', error);
       setScanStatus('error');
-      const errorMessage = 'Une erreur est survenue lors de la validation du billet';
+      const errorMessage = 'Network error or server unavailable';
       setNotification({ type: 'error', message: errorMessage });
-      
-      // Afficher le toast d'erreur
       toast({
         variant: "destructive",
-        title: "Erreur système",
+        title: "System Error",
         description: errorMessage,
       });
     }
-
-    // Réinitialiser l'état après 3 secondes
     setTimeout(() => {
       setScanStatus('idle');
       setNotification(null);
@@ -112,16 +110,6 @@ function HomeContent() {
             onValueChange={handleTabChange}
             className="w-full"
           >
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="scan">
-                <Camera className="mr-2 h-4 w-4" />
-                Scan QR
-              </TabsTrigger>
-              <TabsTrigger value="event">
-                <CalendarDays className="mr-2 h-4 w-4" />
-                Event Info
-              </TabsTrigger>
-            </TabsList>
             
             <TabsContent value="scan" className="mt-4">
               {scanStatus === "idle" ? (
@@ -148,31 +136,6 @@ function HomeContent() {
                 </div>
               )}
             </TabsContent>
-            
-            {/* Ajout du contenu pour l'onglet event */}
-            <TabsContent value="event" className="mt-4">
-              <div className="text-center py-6">
-                <h3 className="text-lg font-medium mb-4">Event Information</h3>
-                <div className="space-y-3 text-left">
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-600">Event Name</p>
-                    <p className="font-medium">Annual Conference 2025</p>
-                  </div>
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-600">Date</p>
-                    <p className="font-medium">June 14, 2025</p>
-                  </div>
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-600">Location</p>
-                    <p className="font-medium">Conference Center</p>
-                  </div>
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-600">Status</p>
-                    <p className="font-medium text-green-600">Active</p>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
           </Tabs>
         </CardContent>
         
@@ -182,17 +145,6 @@ function HomeContent() {
               <RotateCcw className="mr-2 h-4 w-4" />
               Scan Another
             </Button>
-          )}
-          {/* Boutons de test conditionnels selon l'environnement */}
-          {process.env.NODE_ENV === 'development' && (
-            <>
-              <Button variant="outline" onClick={() => handleScanSuccess('test-code-123')}>
-                Test Valid QR Code
-              </Button>
-              <Button variant="outline" onClick={() => handleScanSuccess('invalid-code')}>
-                Test Invalid QR Code
-              </Button>
-            </>
           )}
         </CardFooter>
       </Card>
