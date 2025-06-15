@@ -11,13 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import {
-  CheckCircle,
-  XCircle,
-  RotateCcw,
-  Ticket,
-  Clock,
-} from "lucide-react";
+import { CheckCircle, XCircle, RotateCcw, Ticket, Clock } from "lucide-react";
 import Scanner from "@/components/Scanner";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 import {
@@ -31,73 +25,87 @@ import {
 interface TicketDetails {
   id?: number;
   type?: string;
-  number?: string;
+  numero?: string;
   scan_limit?: number;
   scans_used?: number;
   scans?: string[]; // Scan timestamps
 }
 
 function HomeContent() {
-  const [scanStatus, setScanStatus] = useState<"idle" | "success" | "error">("idle");
+  const [scanStatus, setScanStatus] = useState<"idle" | "success" | "error">(
+    "idle"
+  );
   const [notification, setNotification] = useState<{
     type: "success" | "error";
     message: string;
   } | null>(null);
-  const [ticketDetails, setTicketDetails] = useState<TicketDetails | null>(null);
+  const [ticketDetails, setTicketDetails] = useState<TicketDetails | null>(
+    null
+  );
   const [activeTab] = useState("scan");
   const { toast } = useToast();
 
-  const handleScanSuccess = useCallback(async (data: string) => {
-    try {
-      const response = await fetch("https://localhost:3001/api/scanner", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: data }),
-      });
-      let result;
+  const handleScanSuccess = useCallback(
+    async (data: string) => {
       try {
-        result = await response.json();
-      } catch (e) {
-        console.error("Failed to parse JSON:", e);
-        result = { error: `Non-JSON response: ${await response.text()}` };
-      }
-      if (!response.ok) {
+        const response = await fetch("http://localhost:3000/api/scanner", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: data }),
+        });
+        let result;
+        try {
+          result = await response.json();
+        } catch (e) {
+          console.error("Failed to parse JSON:", e);
+          result = { error: `Non-JSON response: ${await response.text()}` };
+        }
+        if (!response.ok) {
+          setScanStatus("error");
+          setNotification({
+            type: "error",
+            message: result.error || "Unknown error",
+          });
+          setTicketDetails(result.details || {});
+          toast({
+            variant: "destructive",
+            title: result.error?.includes("limit")
+              ? "Scan Limit Reached"
+              : "Validation Error",
+            description: result.error || "Unknown error",
+          });
+          return;
+        }
+        setScanStatus("success");
+        setNotification({ type: "success", message: result.message });
+        setTicketDetails(result.ticket || {});
+        toast({
+          title: "Success!",
+          description: result.message,
+        });
+      } catch (error) {
+        console.error("Fetch error:", error);
         setScanStatus("error");
-        setNotification({ type: "error", message: result.error || "Unknown error" });
-        setTicketDetails(result.details || {});
+        const errorMessage = "Network error or server unavailable";
+        setNotification({ type: "error", message: errorMessage });
+        setTicketDetails(null);
         toast({
           variant: "destructive",
-          title: result.error?.includes("limit") ? "Scan Limit Reached" : "Validation Error",
-          description: result.error || "Unknown error",
+          title: "System Error",
+          description: errorMessage,
         });
-        return;
       }
-      setScanStatus("success");
-      setNotification({ type: "success", message: result.message });
-      setTicketDetails(result.ticket || {});
-      toast({
-        title: "Success!",
-        description: result.message,
-      });
-    } catch (error) {
-      console.error("Fetch error:", error);
-      setScanStatus("error");
-      const errorMessage = "Network error or server unavailable";
-      setNotification({ type: "error", message: errorMessage });
-      setTicketDetails(null);
-      toast({
-        variant: "destructive",
-        title: "System Error",
-        description: errorMessage,
-      });
-    }
-  }, [toast]);
+    },
+    [toast]
+  );
 
   const resetScan = useCallback(() => {
     setScanStatus("idle");
     setNotification(null);
     setTicketDetails(null);
   }, []);
+
+  console.log(ticketDetails);
 
   return (
     <main className="container max-w-md mx-auto px-8">
@@ -128,7 +136,9 @@ function HomeContent() {
                   </div>
                   <div className="text-center">
                     <h3 className="text-xl font-medium">
-                      {scanStatus === "success" ? "Check-in Successful!" : "Invalid QR Code"}
+                      {scanStatus === "success"
+                        ? "Check-in Successful!"
+                        : "Invalid QR Code"}
                     </h3>
                     <p className="text-muted-foreground mt-1">
                       {notification?.message || "Attendee verified"}
@@ -141,16 +151,22 @@ function HomeContent() {
                         <h4 className="font-medium">Ticket Details</h4>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
-                        <span className="text-muted-foreground">ID:</span>
-                        <span>{ticketDetails.id || "N/A"}</span>
+                        <span className="text-muted-foreground">Numero:</span>
+                        <span>{ticketDetails.numero || "N/A"}</span>
                         <span className="text-muted-foreground">Type:</span>
                         <span>{ticketDetails.type || "N/A"}</span>
-                        <span className="text-muted-foreground">Scans Used:</span>
+                        <span className="text-muted-foreground">
+                          Scans Used:
+                        </span>
                         <span>{ticketDetails.scans_used ?? "N/A"}</span>
-                        <span className="text-muted-foreground">Scans Remaining:</span>
+                        <span className="text-muted-foreground">
+                          Scans Remaining:
+                        </span>
                         <span>
-                          {ticketDetails.scan_limit && ticketDetails.scans_used != null
-                            ? ticketDetails.scan_limit - ticketDetails.scans_used
+                          {ticketDetails.scan_limit &&
+                          ticketDetails.scans_used != null
+                            ? ticketDetails.scan_limit -
+                              ticketDetails.scans_used
                             : "N/A"}
                         </span>
                       </div>
@@ -164,7 +180,11 @@ function HomeContent() {
         <CardFooter className="flex flex-col justify-center gap-4">
           {scanStatus !== "idle" && (
             <>
-              <Button variant="outline" onClick={resetScan} className="w-full bg-billet-orange-light">
+              <Button
+                variant="outline"
+                onClick={resetScan}
+                className="w-full bg-billet-orange-light"
+              >
                 <RotateCcw className="mr-2 h-4 w-4" />
                 Scan Another
               </Button>
@@ -182,7 +202,9 @@ function HomeContent() {
                     </DialogHeader>
                     <div className="mt-4">
                       {ticketDetails.scans.length === 0 ? (
-                        <p className="text-muted-foreground">No scans recorded.</p>
+                        <p className="text-muted-foreground">
+                          No scans recorded.
+                        </p>
                       ) : (
                         <ul className="space-y-2">
                           {ticketDetails.scans.map((scanDate, index) => (

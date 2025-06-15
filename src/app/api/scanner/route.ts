@@ -17,6 +17,8 @@ export async function POST(request: Request) {
     // Get the QR code from the request body
     const { code } = await request.json();
 
+    console.log(code)
+
     if (!code) {
       return NextResponse.json({ error: "QR code is required" }, { status: 400 });
     }
