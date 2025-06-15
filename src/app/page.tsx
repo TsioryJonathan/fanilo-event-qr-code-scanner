@@ -10,13 +10,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent} from "@/components/ui/tabs";
 import {
-  Camera,
   CheckCircle,
   XCircle,
   RotateCcw,
-  CalendarDays,
 } from "lucide-react";
 import Scanner from "../components/Scanner";
 
