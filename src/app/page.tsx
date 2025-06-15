@@ -16,25 +16,73 @@ import {
   XCircle,
   RotateCcw,
 } from "lucide-react";
-import Scanner from "../components/Scanner";
+import Scanner from "@/components/Scanner";
+import { ToastProvider, useToast } from "@/components/ui/toast";
 
-export default function Home() {
-  const [scanResult, setScanResult] = useState<string | null>(null);
-  const [scanStatus, setScanStatus] = useState<"idle" | "success" | "error">(
-    "idle"
-  );
-
+function HomeContent() {
+  const [scanStatus, setScanStatus] = useState<"idle" | "success" | "error">("idle");
+  const [notification, setNotification] = useState<{ 
+    type: 'success' | 'error'; 
+    message: string 
+  } | null>(null);
   const [activeTab, setActiveTab] = useState("scan");
+  const { toast } = useToast();
 
-  console.log(scanResult);
-
-  const handleScanSuccess = useCallback((data: string) => {
-    alert(data);
-  }, []);
+  const handleScanSuccess = useCallback(async (data: string) => {
+    console.log('Scanning QR code:', data);
+    try {
+      const response = await fetch('/api/scanner', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: data }),
+      });
+      console.log('API response status:', response.status, 'OK:', response.ok);
+      let result;
+      try {
+        result = await response.json();
+      } catch (e) {
+        console.error('Failed to parse JSON:', e);
+        result = { message: `Non-JSON response: ${await response.text()}` };
+      }
+      console.log('API response body:', result);
+      if (!response.ok) {
+        console.log('API error:', result);
+        setScanStatus('error');
+        setNotification({ type: 'error', message: result.message || 'Unknown error' });
+        toast({
+          variant: "destructive",
+          title: result.message?.includes('limit') ? 'Scan limit reached' : 'Validation Error',
+          description: result.message || 'Unknown error',
+        });
+        return;
+      }
+      console.log('API success:', result);
+      setScanStatus('success');
+      setNotification({ type: 'success', message: result.message });
+      toast({
+        title: "Success!",
+        description: result.message,
+      });
+    } catch (error) {
+      console.error('Scan error:', error);
+      setScanStatus('error');
+      const errorMessage = 'Network error or server unavailable';
+      setNotification({ type: 'error', message: errorMessage });
+      toast({
+        variant: "destructive",
+        title: "System Error",
+        description: errorMessage,
+      });
+    }
+    setTimeout(() => {
+      setScanStatus('idle');
+      setNotification(null);
+    }, 3000);
+  }, [toast]);
 
   const resetScan = useCallback(() => {
-    setScanResult(null);
     setScanStatus("idle");
+    setNotification(null);
   }, []);
 
   const handleTabChange = (value: string) => {
@@ -60,32 +108,27 @@ export default function Home() {
             onValueChange={handleTabChange}
             className="w-full"
           >
-            <TabsContent value="scan">
+            
+            <TabsContent value="scan" className="mt-4">
               {scanStatus === "idle" ? (
                 <Scanner onScanSuccess={handleScanSuccess} />
-              ) : scanStatus === "success" ? (
+              ) : (
                 <div className="flex flex-col items-center gap-4 py-6">
-                  <div className="rounded-full bg-green-100 p-3">
-                    <CheckCircle className="h-8 w-8 text-green-600" />
+                  <div className={`rounded-full p-3 ${
+                    scanStatus === "success" ? "bg-green-100" : "bg-red-100"
+                  }`}>
+                    {scanStatus === "success" ? (
+                      <CheckCircle className="h-8 w-8 text-green-600" />
+                    ) : (
+                      <XCircle className="h-8 w-8 text-red-600" />
+                    )}
                   </div>
                   <div className="text-center">
                     <h3 className="text-xl font-medium">
-                      Check-in Successful!
+                      {scanStatus === "success" ? "Check-in Successful!" : "Invalid QR Code"}
                     </h3>
                     <p className="text-muted-foreground mt-1">
-                      Attendee verified
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-4 py-6">
-                  <div className="rounded-full bg-red-100 p-3">
-                    <XCircle className="h-8 w-8 text-red-600" />
-                  </div>
-                  <div className="text-center">
-                    <h3 className="text-xl font-medium">Invalid QR Code</h3>
-                    <p className="text-muted-foreground mt-1">
-                      This QR code is not valid for this event
+                      {notification?.message || "Attendee verified"}
                     </p>
                   </div>
                 </div>
@@ -93,7 +136,8 @@ export default function Home() {
             </TabsContent>
           </Tabs>
         </CardContent>
-        <CardFooter className="flex justify-center">
+        
+        <CardFooter className="flex justify-center gap-4">
           {scanStatus !== "idle" && (
             <Button variant="outline" onClick={resetScan}>
               <RotateCcw className="mr-2 h-4 w-4" />
@@ -103,5 +147,13 @@ export default function Home() {
         </CardFooter>
       </Card>
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <ToastProvider>
+      <HomeContent />
+    </ToastProvider>
   );
 }
