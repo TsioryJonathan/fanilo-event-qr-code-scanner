@@ -29,14 +29,12 @@ function HomeContent() {
   const { toast } = useToast();
 
   const handleScanSuccess = useCallback(async (data: string) => {
-    console.log('Scanning QR code:', data);
     try {
       const response = await fetch('/api/scanner', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: data }),
       });
-      console.log('API response status:', response.status, 'OK:', response.ok);
       let result;
       try {
         result = await response.json();
@@ -44,9 +42,7 @@ function HomeContent() {
         console.error('Failed to parse JSON:', e);
         result = { message: `Non-JSON response: ${await response.text()}` };
       }
-      console.log('API response body:', result);
       if (!response.ok) {
-        console.log('API error:', result);
         setScanStatus('error');
         setNotification({ type: 'error', message: result.message || 'Unknown error' });
         toast({
@@ -56,7 +52,6 @@ function HomeContent() {
         });
         return;
       }
-      console.log('API success:', result);
       setScanStatus('success');
       setNotification({ type: 'success', message: result.message });
       toast({
@@ -77,7 +72,7 @@ function HomeContent() {
     setTimeout(() => {
       setScanStatus('idle');
       setNotification(null);
-    }, 3000);
+    }, 5000);
   }, [toast]);
 
   const resetScan = useCallback(() => {
