@@ -1,12 +1,10 @@
 import type React from "react";
-import "./globals.css";
+import "../globals.css";
 import type { Metadata } from "next";
 import { Quicksand } from "next/font/google";
 import { Toaster } from "@/components/ui/toast";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import FloatingSidebar from "@/components/FloatingNavbar";
-import { BackgroundBeams } from "@/components/ui/background-beams";
 
 const quicksand = Quicksand({
   subsets: ["latin"],
@@ -26,10 +24,8 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <body
-        className={`${quicksand.className} max-h-screen max-screen flex justify-center mt-10 dark overflow-hidden`}
+        className={`${quicksand.className} h-screen w-screen flex justify-center items-center dark overflow-hidden bg-background`}
       >
-        <BackgroundBeams className="-z-10" />
-        <FloatingSidebar />
         <main>{children}</main>
         <Analytics />
         <SpeedInsights />
