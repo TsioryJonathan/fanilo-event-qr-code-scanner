@@ -106,10 +106,12 @@ function HomeContent() {
   }, []);
 
   return (
-    <main className="mx-auto px-5 w-[420px]">
+    <main className="mx-auto px-5 md:w-[420px] w-[380px]">
       <Card className="border-2 bg-black/30 w-full">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Scanner QR de l&apos;Événement</CardTitle>
+          <CardTitle className="text-2xl">
+            Scanner QR de l&apos;Événement
+          </CardTitle>
           <CardDescription>
             Scanne les QR codes des participants pour vérifier et enregistrer
             leur entrée

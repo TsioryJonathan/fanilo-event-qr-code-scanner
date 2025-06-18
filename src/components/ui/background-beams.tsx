@@ -57,11 +57,16 @@ export const BackgroundBeams = React.memo(
       "M-44 -573C-44 -573 24 -168 488 -41C952 86 1020 491 1020 491",
       "M-37 -581C-37 -581 31 -176 495 -49C959 78 1027 483 1027 483",
     ];
+
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    const displayedPaths = isMobile ? paths.slice(0, 10) : paths;
+
+
     return (
       <div
         className={cn(
           "absolute inset-0 flex h-full w-full items-center justify-center [mask-repeat:no-repeat] [mask-size:40px]",
-          className,
+          className
         )}
       >
         <svg
@@ -79,7 +84,7 @@ export const BackgroundBeams = React.memo(
             strokeWidth="0.5"
           ></path>
 
-          {paths.map((path, index) => (
+          {displayedPaths.map((path, index) => (
             <motion.path
               key={`path-` + index}
               d={path}
@@ -89,7 +94,7 @@ export const BackgroundBeams = React.memo(
             ></motion.path>
           ))}
           <defs>
-            {paths.map((path, index) => (
+            {displayedPaths.map((path, index) => (
               <motion.linearGradient
                 id={`linearGradient-${index}`}
                 key={`gradient-${index}`}
@@ -135,7 +140,7 @@ export const BackgroundBeams = React.memo(
         </svg>
       </div>
     );
-  },
+  }
 );
 
 BackgroundBeams.displayName = "BackgroundBeams";
