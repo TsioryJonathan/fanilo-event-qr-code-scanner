@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 
@@ -57,10 +57,22 @@ export const BackgroundBeams = React.memo(
       "M-44 -573C-44 -573 24 -168 488 -41C952 86 1020 491 1020 491",
       "M-37 -581C-37 -581 31 -176 495 -49C959 78 1027 483 1027 483",
     ];
+    const [isMobile, setIsMobile] = useState(false);
 
-    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    useEffect(() => {
+      const handleResize = () => {
+        setIsMobile(window.innerWidth < 768); // breakpoint mobile
+      };
+
+      // Initial check
+      handleResize();
+
+      // Update on resize
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
     const displayedPaths = isMobile ? paths.slice(0, 10) : paths;
-
 
     return (
       <div
@@ -73,7 +85,7 @@ export const BackgroundBeams = React.memo(
           className="pointer-events-none absolute z-0 h-full w-full"
           width="100%"
           height="100%"
-          viewBox="0 0 696 316"
+          viewBox={isMobile ? "0 200 696 516" : "0 0 696 316"}
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
