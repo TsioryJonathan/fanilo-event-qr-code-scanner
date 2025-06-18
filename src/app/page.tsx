@@ -57,22 +57,22 @@ function HomeContent() {
         try {
           result = await response.json();
         } catch (e) {
-          console.error("Failed to parse JSON:", e);
-          result = { error: `Non-JSON response: ${await response.text()}` };
+          console.error("Échec de l’analyse JSON :", e);
+          result = { error: `Réponse non-JSON : ${await response.text()}` };
         }
         if (!response.ok) {
           setScanStatus("error");
           setNotification({
             type: "error",
-            message: result.error || "Unknown error",
+            message: result.error || "Erreur inconnue",
           });
           setTicketDetails(result.details || {});
           toast({
             variant: "destructive",
             title: result.error?.includes("limit")
-              ? "Scan Limit Reached"
-              : "Validation Error",
-            description: result.error || "Unknown error",
+              ? "Limite de scan atteinte"
+              : "Erreur de validation",
+            description: result.error || "Erreur inconnue",
           });
           return;
         }
@@ -80,18 +80,18 @@ function HomeContent() {
         setNotification({ type: "success", message: result.message });
         setTicketDetails(result.ticket || {});
         toast({
-          title: "Success!",
+          title: "Succès !",
           description: result.message,
         });
       } catch (error) {
-        console.error("Fetch error:", error);
+        console.error("Erreur de requête :", error);
         setScanStatus("error");
-        const errorMessage = "Network error or server unavailable";
+        const errorMessage = "Erreur réseau ou serveur indisponible";
         setNotification({ type: "error", message: errorMessage });
         setTicketDetails(null);
         toast({
           variant: "destructive",
-          title: "System Error",
+          title: "Erreur système",
           description: errorMessage,
         });
       }
@@ -107,11 +107,12 @@ function HomeContent() {
 
   return (
     <main className="container max-w-md mx-auto px-8">
-      <Card className="border-2">
+      <Card className="border-2 bg-black/30">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Event QR Scanner</CardTitle>
+          <CardTitle className="text-2xl">Scanner QR de l'Événement</CardTitle>
           <CardDescription>
-            Scan attendee QR codes to verify and check in
+            Scanne les QR codes des participants pour vérifier et enregistrer
+            leur entrée
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -135,30 +136,30 @@ function HomeContent() {
                   <div className="text-center">
                     <h3 className="text-xl font-medium">
                       {scanStatus === "success"
-                        ? "Check-in Successful!"
-                        : "Invalid QR Code"}
+                        ? "Enregistrement réussi !"
+                        : "QR Code invalide"}
                     </h3>
                     <p className="text-muted-foreground mt-1">
-                      {notification?.message || "Attendee verified"}
+                      {notification?.message || "Participant vérifié"}
                     </p>
                   </div>
                   {ticketDetails && (
                     <div className="mt-4 w-full text-left">
                       <div className="flex items-center gap-2 mb-2">
                         <Ticket className="h-5 w-5 text-gray-600" />
-                        <h4 className="font-medium">Ticket Details</h4>
+                        <h4 className="font-medium">Détails du billet</h4>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
-                        <span className="text-muted-foreground">Numero:</span>
+                        <span className="text-muted-foreground">Numéro :</span>
                         <span>{ticketDetails.numero}</span>
-                        <span className="text-muted-foreground">Type:</span>
+                        <span className="text-muted-foreground">Type :</span>
                         <span>{ticketDetails.type || "N/A"}</span>
                         <span className="text-muted-foreground">
-                          Scans Used:
+                          Utilisations :
                         </span>
                         <span>{ticketDetails.scans_used ?? "N/A"}</span>
                         <span className="text-muted-foreground">
-                          Scans Remaining:
+                          Restantes :
                         </span>
                         <span>
                           {ticketDetails.scan_limit &&
@@ -184,24 +185,24 @@ function HomeContent() {
                 className="w-full bg-billet-orange-light"
               >
                 <RotateCcw className="mr-2 h-4 w-4" />
-                Scan Another
+                Scanner un autre
               </Button>
               {ticketDetails?.scans && ticketDetails.scans.length > 0 && (
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button variant="outline" className="w-full">
                       <Clock className="mr-2 h-4 w-4" />
-                      View Scan History
+                      Afficher l’historique des scans
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Scan History</DialogTitle>
+                      <DialogTitle>Historique des scans</DialogTitle>
                     </DialogHeader>
                     <div className="mt-4">
                       {ticketDetails.scans.length === 0 ? (
                         <p className="text-muted-foreground">
-                          No scans recorded.
+                          Aucun scan enregistré.
                         </p>
                       ) : (
                         <ul className="space-y-2">
@@ -209,7 +210,7 @@ function HomeContent() {
                             <li key={index} className="flex items-center gap-2">
                               <Clock className="h-4 w-4 text-gray-600" />
                               <span>
-                                {new Date(scanDate).toLocaleString("en-US", {
+                                {new Date(scanDate).toLocaleString("fr-FR", {
                                   dateStyle: "medium",
                                   timeStyle: "short",
                                   hour12: false,
