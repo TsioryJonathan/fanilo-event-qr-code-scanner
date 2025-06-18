@@ -3,7 +3,6 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Ticket, History, BarChart3 } from "lucide-react";
-import clsx from "clsx";
 
 const navItems = [
   { label: "Scanner", href: "/", icon: <Ticket className="w-7 h-7" /> },

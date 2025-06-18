@@ -1,21 +1,4 @@
-/* ─────────────────────────────────────────────
-   Palette sombre & variables
-   ─────────────────────────────────────────── */
-:root {
-  --clr-primary: #0ea5e9; /* Bleu moderne */
-  --clr-primary-dark: #0369a1; /* Bleu foncé élégant */
 
-  --clr-secondary: #64748b; /* Gris bleuté / complément élégant */
-  --clr-neutral-100: #1f2937; /* Fond scanner */
-  --clr-neutral-800: #0f172a; /* Fond global foncé */
-
-  --shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --glass-blur: blur(10px);
-}
-
-/* ─────────────────────────────────────────────
-       Conteneur principal du scanner
-       ─────────────────────────────────────────── */
 .scannerFrame {
   position: relative;
   width: 100%;
@@ -26,9 +9,6 @@
   box-shadow: var(--shadow-elevated);
 }
 
-/* ─────────────────────────────────────────────
-       Ligne de balayage (effet scanner)
-       ─────────────────────────────────────────── */
 .scanLine {
   position: absolute;
   inset-inline: 0;
@@ -43,9 +23,7 @@
   pointer-events: none;
 }
 
-/* ─────────────────────────────────────────────
-       Overlay lorsqu'aucun scan actif
-       ─────────────────────────────────────────── */
+
 .scannerOverlay {
   position: absolute;
   inset: 0;
@@ -62,18 +40,14 @@
   animation: pulse 1.5s ease-in-out infinite;
 }
 
-/* ─────────────────────────────────────────────
-       Titre de l’événement
-       ─────────────────────────────────────────── */
+
 .eventName {
   font-size: 1.55rem;
   letter-spacing: -0.02em;
   animation: glow 4s ease-in-out infinite alternate;
 }
 
-/* ─────────────────────────────────────────────
-       Petit texte d’instruction
-       ─────────────────────────────────────────── */
+
 .scannerText {
   margin-top: 10px;
   font-size: 0.85rem;
@@ -92,49 +66,5 @@
   color: var(--clr-primary-dark) !important;
 }
 
-/* ─────────────────────────────────────────────
-       Animations
-       ─────────────────────────────────────────── */
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.9;
-  }
-  50% {
-    transform: scale(1.12);
-    opacity: 1;
-  }
-}
 
-@keyframes scan {
-  0% {
-    top: 0%;
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  90% {
-    opacity: 1;
-  }
-  100% {
-    top: 100%;
-    opacity: 0;
-  }
-}
 
-@keyframes glow {
-  from {
-    filter: drop-shadow(0 0 0 rgba(14, 165, 233, 0.6));
-  }
-  to {
-    filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.9));
-  }
-}
-
-@keyframes hueShift {
-  to {
-    filter: hue-rotate(360deg);
-  }
-}
