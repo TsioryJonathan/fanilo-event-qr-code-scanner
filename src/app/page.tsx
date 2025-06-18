@@ -119,7 +119,7 @@ function HomeContent() {
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} className="w-full">
-            <TabsContent value="scan" className="mt-4">
+            <TabsContent value="scan" className="mt-1">
               {scanStatus === "idle" ? (
                 <Scanner onScanSuccess={handleScanSuccess} />
               ) : (
@@ -130,13 +130,13 @@ function HomeContent() {
                     }`}
                   >
                     {scanStatus === "success" ? (
-                      <CheckCircle className="h-8 w-8 text-green-600" />
+                      <CheckCircle className="h-6 w-6 text-green-600" />
                     ) : (
-                      <XCircle className="h-8 w-8 text-red-600" />
+                      <XCircle className="h-6 w-6 text-red-600" />
                     )}
                   </div>
                   <div className="text-center">
-                    <h3 className="text-xl font-medium">
+                    <h3 className="text-lg font-medium">
                       {scanStatus === "success"
                         ? "Enregistrement réussi !"
                         : "QR Code invalide"}
