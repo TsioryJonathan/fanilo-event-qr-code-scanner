@@ -5,7 +5,7 @@ import { Quicksand } from "next/font/google";
 import { Toaster } from "@/components/ui/toast";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import FloatingSidebar from "@/components/FloatingSidebar";
+import FloatingSidebar from "@/components/FloatingNavbar";
 import { BackgroundBeams } from "@/components/ui/background-beams";
 
 const quicksand = Quicksand({

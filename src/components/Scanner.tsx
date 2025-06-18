@@ -67,7 +67,7 @@ export default function Scanner({ onScanSuccess }: QrScannerProps) {
       await scannerRef.current.start(
         { facingMode: "environment" },
         {
-          fps: 30,
+          fps: 15,
         },
         handleScanResult,
         () => {}

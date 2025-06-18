@@ -18,13 +18,13 @@ const navItems = [
   },
 ];
 
-export default function FloatingSidebar() {
+export default function FloatingNavbar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed left-5 top-1/2 -translate-y-1/2 w-16 h-fit bg-gray-800/50 backdrop-blur-md shadow-lg rounded-xl py-10 flex items-center justify-center animate-float z-50">
+    <aside className="fixed bottom-2 left-1/2 -translate-x-1/2 md:left-20 md:top-1/2 md:-translate-y-1/2 h-fit bg-gray-800/30 backdrop-blur-md shadow-lg rounded-xl flex items-center justify-center animate-float z-50 px-10 py-4 md:px-5 md:py-10">
       <nav>
-        <ul className="flex flex-col gap-10">
+        <ul className="flex flex-row md:flex-col gap-20">
           {navItems.map((item) => (
             <li key={item.href}>
               <Link
