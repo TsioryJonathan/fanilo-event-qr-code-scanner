@@ -28,7 +28,9 @@
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^3.6.0",
     "html5-qrcode": "^2.3.8",
+    "lodash": "^4.17.21",
     "lucide-react": "^0.515.0",
     "motion": "^12.18.1",
     "next": "15.3.3",
@@ -39,12 +41,12 @@
     "react-hook-form": "^7.58.1",
     "tailwind-merge": "^3.3.1",
     "tailwind-variants": "^1.0.0",
-    "date-fns": "^3.6.0",
     "zod": "^3.25.67"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/lodash": "^4.17.18",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
