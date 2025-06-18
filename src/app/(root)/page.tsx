@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,7 +11,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { CheckCircle, XCircle, RotateCcw, Ticket, Clock } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  RotateCcw,
+  Ticket,
+  Clock,
+  Loader2,
+} from "lucide-react";
 import Scanner from "@/components/Scanner";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 import {
@@ -21,6 +28,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 interface TicketDetails {
   id: number;
@@ -184,7 +193,7 @@ function HomeContent() {
               <Button
                 variant="outline"
                 onClick={resetScan}
-                className="w-full bg-billet-orange-light"
+                className="w-full bg-billet-orange-light cursor-pointer"
               >
                 <RotateCcw className="mr-2 h-4 w-4" />
                 Scanner un autre
@@ -198,7 +207,7 @@ function HomeContent() {
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
-                    <DialogHeader>
+                    <DialogHeader className="cursor-pointer">
                       <DialogTitle>Historique des scans</DialogTitle>
                     </DialogHeader>
                     <div className="mt-4">
@@ -235,9 +244,30 @@ function HomeContent() {
 }
 
 export default function Home() {
-  return (
-    <ToastProvider>
-      <HomeContent />
-    </ToastProvider>
-  );
+  const { status } = useSession();
+  const router = useRouter();
+
+  // Redirection si non connecté
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.replace("/login"); // replace évite le retour arrière vers /
+    }
+  }, [status, router]);
+
+  if (status === "loading") {
+    return (
+      <div className="fixed top-1/2 -translate-x-1/2">
+        <Loader2 className="animate-spin w-10 h-10" />
+      </div>
+    );
+  }
+
+  if (status === "authenticated") {
+    return (
+      <ToastProvider>
+        <HomeContent />
+      </ToastProvider>
+    );
+  }
+  return null;
 }
