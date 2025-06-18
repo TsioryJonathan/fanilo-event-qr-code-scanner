@@ -119,7 +119,7 @@ function HomeContent() {
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} className="w-full">
-            <TabsContent value="scan" className="mt-1">
+            <TabsContent value="scan" className="-mt-8">
               {scanStatus === "idle" ? (
                 <Scanner onScanSuccess={handleScanSuccess} />
               ) : (

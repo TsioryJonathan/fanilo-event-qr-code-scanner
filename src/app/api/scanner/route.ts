@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     if (remainingScans <= 0) {
       return NextResponse.json(
         {
-          error: "Ce billet a atteint sa limite maximale de scans",
+          error: "Ce billet a atteint sa limite de scans",
           details: {
             type: ticket.type,
             numero: ticket.numero,
