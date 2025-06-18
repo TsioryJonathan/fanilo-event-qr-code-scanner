@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <body
-        className={`${quicksand.className} min-h-screen min-w-screen flex items-center justify-center dark`}
+        className={`${quicksand.className} max-h-screen max-screen flex justify-center mt-10 dark overflow-hidden`}
       >
         <BackgroundBeams className="-z-10" />
         <FloatingSidebar />
