@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -15,7 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ToastProvider, useToast } from "@/components/ui/toast";
-import { format } from "date-fns";
+import { format, isAfter } from "date-fns";
+import { debounce } from "lodash";
 
 interface ScanItem {
   id: number;
@@ -24,18 +25,45 @@ interface ScanItem {
   type: string;
 }
 
-function Filters({ onApply }: { onApply: (p: { start?: string; end?: string; q?: string }) => void }) {
+function Filters({
+  onApply,
+}: {
+  onApply: (p: { start?: string; end?: string; q?: string }) => void;
+}) {
   const [start, setStart] = useState<string>("");
   const [end, setEnd] = useState<string>("");
   const [q, setQ] = useState<string>("");
+  const { toast } = useToast();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (start && end) {
+      // Utilisation de isAfter de date-fns
+      if (isAfter(new Date(start), new Date(end))) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "La date de début ne peut pas être postérieure à la date de fin.",
+        });
+        return;
+      }
+      // Alternative sans date-fns :
+      // if (new Date(start) > new Date(end)) {
+      //   toast({
+      //     variant: "destructive",
+      //     title: "Erreur",
+      //     description: "La date de début ne peut pas être postérieure à la date de fin.",
+      //   });
+      //   return;
+      // }
+    }
+    onApply({ start, end, q });
+  };
 
   return (
     <form
       className="flex flex-col gap-4 md:flex-row md:items-end md:gap-6"
-      onSubmit={(e) => {
-        e.preventDefault();
-        onApply({ start, end, q });
-      }}
+      onSubmit={handleSubmit}
     >
       <div className="flex flex-col gap-1 w-full md:w-auto">
         <Label htmlFor="start">Début</Label>
@@ -44,23 +72,32 @@ function Filters({ onApply }: { onApply: (p: { start?: string; end?: string; q?:
           type="date"
           value={start}
           onChange={(e) => setStart(e.target.value)}
+          aria-label="Sélectionnez la date de début du filtre"
         />
       </div>
       <div className="flex flex-col gap-1 w-full md:w-auto">
         <Label htmlFor="end">Fin</Label>
-        <Input id="end" type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
+        <Input
+          id="end"
+          type="date"
+          value={end}
+          onChange={(e) => setEnd(e.target.value)}
+          aria-label="Sélectionnez la date de fin du filtre"
+        />
       </div>
       <div className="flex flex-col gap-1 w-full md:flex-1">
-        <Label htmlFor="search">Numéro billet</Label>
+        <Label htmlFor="search">Numéro de billet</Label>
         <Input
           id="search"
           placeholder="Rechercher..."
           value={q}
           onChange={(e) => setQ(e.target.value)}
+          aria-label="Rechercher par numéro de billet"
         />
       </div>
       <Button type="submit" className="flex gap-2">
-        <Search className="w-4 h-4" /> Filtrer
+        <Search className="w-4 h-4" />
+        Filtrer
       </Button>
     </form>
   );
@@ -70,27 +107,62 @@ function HistoryContent() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<ScanItem[]>([]);
   const { toast } = useToast();
+  const router = useRouter();
 
-  const fetchData = async (params: { start?: string; end?: string; q?: string } = {}) => {
-    setLoading(true);
-    try {
-      const query = new URLSearchParams(params as Record<string, string>);
-      const res = await fetch(`/api/history?${query.toString()}`);
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Erreur");
-      setData(json.scans);
-    } catch (err: any) {
-      console.error(err);
-      toast({ variant: "destructive", title: "Erreur", description: err.message });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const fetchData = useCallback(
+    debounce(
+      async (params: { start?: string; end?: string; q?: string } = {}) => {
+        setLoading(true);
+        try {
+          const query = new URLSearchParams();
+          if (params.start) query.append("start", params.start);
+          if (params.end) query.append("end", params.end);
+          if (params.q) query.append("q", params.q);
+          const queryString = query.toString();
+          const res = await fetch(`/api/history${queryString ? `?${queryString}` : ""}`);
+          const json = await res.json();
+          if (!res.ok) {
+            if (res.status === 401) {
+              router.push("/login");
+              return;
+            }
+            throw new Error(json.error || "Erreur");
+          }
+          setData(json.scans);
+        } catch (err: unknown) {
+          const errorMessage =
+            err instanceof Error ? err.message : "Une erreur inconnue s'est produite";
+          console.error("Erreur fetching data:", err);
+          toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: errorMessage,
+          });
+        } finally {
+          setLoading(false);
+        }
+      },
+      300,
+    ),
+    [router, toast],
+  );
 
   useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    fetchData(); // Initial fetch
+    // Dépendances intentionnellement limitées au montage initial
+  }, [fetchData]);
+
+  const formatDate = (dateStr: string): string => {
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) {
+        return "Date invalide";
+      }
+      return format(date, "dd/MM/yyyy HH:mm");
+    } catch {
+      return "Erreur de format";
+    }
+  };
 
   return (
     <div className="w-full md:w-[700px] mx-auto px-4">
@@ -101,7 +173,7 @@ function HistoryContent() {
           <Loader2 className="animate-spin w-10 h-10" />
         </div>
       ) : (
-        <Card className="border-2 bg-black/30 w-full mt-6">
+        <Card className="border-2 bg-black/30 mt-6">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">Historique des scans</CardTitle>
             <CardDescription>Total : {data.length}</CardDescription>
@@ -116,16 +188,14 @@ function HistoryContent() {
                     key={scan.id}
                     className="flex items-center justify-between bg-gray-800/30 p-3 rounded-lg shadow"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <Clock className="w-5 h-5 text-gray-400" />
                       <div>
                         <p className="font-medium">Billet {scan.numero}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(scan.createdAt), "dd/MM/yyyy HH:mm")}
-                        </p>
+                        <p className="text-xs text-muted-foreground">{formatDate(scan.createdAt)}</p>
                       </div>
                     </div>
-                    <span className="text-sm bg-billet-bleu/20 text-billet-bleu px-2 py-1 rounded">
+                    <span className="text-sm bg-blue-200/20 text-blue-600 px-2 py-1 rounded">
                       {scan.type}
                     </span>
                   </li>
@@ -164,5 +234,6 @@ export default function HistoryPage() {
       </ToastProvider>
     );
   }
+
   return null;
 }
