@@ -1,11 +1,15 @@
 import type React from "react";
-import "./globals.css";
+import "../globals.css";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Quicksand } from "next/font/google";
 import { Toaster } from "@/components/ui/toast";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
-const inter = Inter({ subsets: ["latin"] });
+const quicksand = Quicksand({
+  subsets: ["latin"],
+  variable: "--font-quicksand",
+});
 
 export const metadata: Metadata = {
   title: "Event QR Scanner",
@@ -18,10 +22,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} min-h-screen min-w-screen`}>
-        {children}
+    <html lang="fr" suppressHydrationWarning>
+      <body
+        className={`${quicksand.className} h-screen w-screen flex justify-center items-center dark overflow-hidden bg-background`}
+      >
+        <main>{children}</main>
         <Analytics />
+        <SpeedInsights />
         <Toaster />
       </body>
     </html>

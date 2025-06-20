@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,7 +11,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { CheckCircle, XCircle, RotateCcw, Ticket, Clock } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  RotateCcw,
+  Ticket,
+  Clock,
+  Loader2,
+} from "lucide-react";
 import Scanner from "@/components/Scanner";
 import { ToastProvider, useToast } from "@/components/ui/toast";
 import {
@@ -21,13 +28,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 interface TicketDetails {
-  id?: number;
-  type?: string;
-  numero?: string;
-  scan_limit?: number;
-  scans_used?: number;
+  id: number;
+  type: string;
+  numero: string;
+  scan_limit: number;
+  scans_used: number;
   scans?: string[]; // Scan timestamps
 }
 
@@ -57,22 +66,22 @@ function HomeContent() {
         try {
           result = await response.json();
         } catch (e) {
-          console.error("Failed to parse JSON:", e);
-          result = { error: `Non-JSON response: ${await response.text()}` };
+          console.error("Échec de l’analyse JSON :", e);
+          result = { error: `Réponse non-JSON : ${await response.text()}` };
         }
         if (!response.ok) {
           setScanStatus("error");
           setNotification({
             type: "error",
-            message: result.error || "Unknown error",
+            message: result.error || "Erreur inconnue",
           });
           setTicketDetails(result.details || {});
           toast({
             variant: "destructive",
             title: result.error?.includes("limit")
-              ? "Scan Limit Reached"
-              : "Validation Error",
-            description: result.error || "Unknown error",
+              ? "Limite de scan atteinte"
+              : "Erreur de validation",
+            description: result.error || "Erreur inconnue",
           });
           return;
         }
@@ -80,18 +89,18 @@ function HomeContent() {
         setNotification({ type: "success", message: result.message });
         setTicketDetails(result.ticket || {});
         toast({
-          title: "Success!",
+          title: "Succès !",
           description: result.message,
         });
       } catch (error) {
-        console.error("Fetch error:", error);
+        console.error("Erreur de requête :", error);
         setScanStatus("error");
-        const errorMessage = "Network error or server unavailable";
+        const errorMessage = "Erreur réseau ou serveur indisponible";
         setNotification({ type: "error", message: errorMessage });
         setTicketDetails(null);
         toast({
           variant: "destructive",
-          title: "System Error",
+          title: "Erreur système",
           description: errorMessage,
         });
       }
@@ -105,20 +114,21 @@ function HomeContent() {
     setTicketDetails(null);
   }, []);
 
-  console.log(ticketDetails);
-
   return (
-    <main className="container max-w-md mx-auto px-8">
-      <Card className="border-2">
+    <main className="mx-auto px-5 md:w-[420px] w-[380px]">
+      <Card className="border-2 bg-black/30 w-full">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Event QR Scanner</CardTitle>
+          <CardTitle className="text-2xl">
+            Scanner QR de l&apos;Événement
+          </CardTitle>
           <CardDescription>
-            Scan attendee QR codes to verify and check in
+            Scanne les QR codes des participants pour vérifier et enregistrer
+            leur entrée
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} className="w-full">
-            <TabsContent value="scan" className="mt-4">
+            <TabsContent value="scan" className="-mt-6">
               {scanStatus === "idle" ? (
                 <Scanner onScanSuccess={handleScanSuccess} />
               ) : (
@@ -129,38 +139,38 @@ function HomeContent() {
                     }`}
                   >
                     {scanStatus === "success" ? (
-                      <CheckCircle className="h-8 w-8 text-green-600" />
+                      <CheckCircle className="h-6 w-6 text-green-600" />
                     ) : (
-                      <XCircle className="h-8 w-8 text-red-600" />
+                      <XCircle className="h-6 w-6 text-red-600" />
                     )}
                   </div>
                   <div className="text-center">
-                    <h3 className="text-xl font-medium">
+                    <h3 className="text-lg font-medium">
                       {scanStatus === "success"
-                        ? "Check-in Successful!"
-                        : "Invalid QR Code"}
+                        ? "Enregistrement réussi !"
+                        : "QR Code invalide"}
                     </h3>
                     <p className="text-muted-foreground mt-1">
-                      {notification?.message || "Attendee verified"}
+                      {notification?.message || "Participant vérifié"}
                     </p>
                   </div>
                   {ticketDetails && (
                     <div className="mt-4 w-full text-left">
                       <div className="flex items-center gap-2 mb-2">
                         <Ticket className="h-5 w-5 text-gray-600" />
-                        <h4 className="font-medium">Ticket Details</h4>
+                        <h4 className="font-medium">Détails du billet</h4>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
-                        <span className="text-muted-foreground">Numero:</span>
-                        <span>{ticketDetails.numero || "N/A"}</span>
-                        <span className="text-muted-foreground">Type:</span>
+                        <span className="text-muted-foreground">Numéro :</span>
+                        <span>{ticketDetails.numero}</span>
+                        <span className="text-muted-foreground">Type :</span>
                         <span>{ticketDetails.type || "N/A"}</span>
                         <span className="text-muted-foreground">
-                          Scans Used:
+                          Utilisations :
                         </span>
                         <span>{ticketDetails.scans_used ?? "N/A"}</span>
                         <span className="text-muted-foreground">
-                          Scans Remaining:
+                          Restantes :
                         </span>
                         <span>
                           {ticketDetails.scan_limit &&
@@ -183,27 +193,27 @@ function HomeContent() {
               <Button
                 variant="outline"
                 onClick={resetScan}
-                className="w-full bg-billet-orange-light"
+                className="w-full bg-billet-orange-light cursor-pointer"
               >
                 <RotateCcw className="mr-2 h-4 w-4" />
-                Scan Another
+                Scanner un autre
               </Button>
               {ticketDetails?.scans && ticketDetails.scans.length > 0 && (
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button variant="outline" className="w-full">
                       <Clock className="mr-2 h-4 w-4" />
-                      View Scan History
+                      Afficher l’historique des scans
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Scan History</DialogTitle>
+                    <DialogHeader className="cursor-pointer">
+                      <DialogTitle>Historique des scans</DialogTitle>
                     </DialogHeader>
                     <div className="mt-4">
                       {ticketDetails.scans.length === 0 ? (
                         <p className="text-muted-foreground">
-                          No scans recorded.
+                          Aucun scan enregistré.
                         </p>
                       ) : (
                         <ul className="space-y-2">
@@ -211,9 +221,10 @@ function HomeContent() {
                             <li key={index} className="flex items-center gap-2">
                               <Clock className="h-4 w-4 text-gray-600" />
                               <span>
-                                {new Date(scanDate).toLocaleString("en-US", {
+                                {new Date(scanDate).toLocaleString("fr-FR", {
                                   dateStyle: "medium",
                                   timeStyle: "short",
+                                  hour12: false,
                                 })}
                               </span>
                             </li>
@@ -233,9 +244,30 @@ function HomeContent() {
 }
 
 export default function Home() {
-  return (
-    <ToastProvider>
-      <HomeContent />
-    </ToastProvider>
-  );
+  const { status } = useSession();
+  const router = useRouter();
+
+  // Redirection si non connecté
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.replace("/login"); // replace évite le retour arrière vers /
+    }
+  }, [status, router]);
+
+  if (status === "loading") {
+    return (
+      <div className="fixed top-1/2 -translate-x-1/2">
+        <Loader2 className="animate-spin w-10 h-10" />
+      </div>
+    );
+  }
+
+  if (status === "authenticated") {
+    return (
+      <ToastProvider>
+        <HomeContent />
+      </ToastProvider>
+    );
+  }
+  return null;
 }

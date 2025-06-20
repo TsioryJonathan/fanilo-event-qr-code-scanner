@@ -28,7 +28,7 @@ export default function Scanner({ onScanSuccess }: QrScannerProps) {
           scannerRef.current.stop();
           setIsScanning(false);
         } catch (error) {
-          console.error("Error stopping scanner:", error);
+          console.error("Erreur lors de l’arrêt du scanner :", error);
         }
       }
     };
@@ -45,11 +45,11 @@ export default function Scanner({ onScanSuccess }: QrScannerProps) {
         }
         onScanSuccess(decodedText);
       } catch (err) {
-        console.error("Error processing scan result:", err);
+        console.error("Erreur pendant le traitement du scan :", err);
         toast({
           variant: "destructive",
-          title: "Error",
-          description: "An error occurred during scan processing.",
+          title: "Erreur",
+          description: "Une erreur est survenue pendant le traitement du scan.",
         });
       } finally {
         setIsProcessing(false);
@@ -67,8 +67,7 @@ export default function Scanner({ onScanSuccess }: QrScannerProps) {
       await scannerRef.current.start(
         { facingMode: "environment" },
         {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
+          fps: 15,
         },
         handleScanResult,
         () => {}
@@ -76,9 +75,8 @@ export default function Scanner({ onScanSuccess }: QrScannerProps) {
 
       setIsScanning(true);
     } catch (err) {
-      console.error("Error starting scanner:", err);
+      console.error("Erreur au démarrage du scanner :", err);
 
-      // 👇 Vérification explicite du type d'erreur
       if (err instanceof Error) {
         if (
           err.name === "NotAllowedError" ||
@@ -87,30 +85,31 @@ export default function Scanner({ onScanSuccess }: QrScannerProps) {
           setPermissionDenied(true);
           toast({
             variant: "destructive",
-            title: "Permission Denied",
+            title: "Permission refusée",
             description:
-              "Camera access was denied. Please allow access in your browser settings.",
+              "L’accès à la caméra a été refusé. Veuillez l’autoriser dans les paramètres de votre navigateur.",
           });
         } else if (err.name === "NotFoundError") {
           toast({
             variant: "destructive",
-            title: "Camera Not Found",
-            description: "No camera device detected. Please connect a camera.",
+            title: "Caméra introuvable",
+            description:
+              "Aucun appareil caméra détecté. Veuillez connecter une caméra.",
           });
         } else {
           toast({
             variant: "destructive",
-            title: "Failed to Start",
-            description: "Unable to start the camera. Please try again.",
+            title: "Échec du démarrage",
+            description:
+              "Impossible de démarrer la caméra. Veuillez réessayer.",
           });
         }
       } else {
-        // Cas où l'erreur n'est pas une instance d'Error (rare)
         toast({
           variant: "destructive",
-          title: "Unknown Error",
+          title: "Erreur inconnue",
           description:
-            "An unexpected error occurred while starting the scanner.",
+            "Une erreur inattendue est survenue lors du démarrage du scanner.",
         });
       }
 
@@ -124,26 +123,23 @@ export default function Scanner({ onScanSuccess }: QrScannerProps) {
         await scannerRef.current.stop();
       }
     } catch (error) {
-      console.error("Error stopping scanner:", error);
+      console.error("Erreur lors de l’arrêt du scanner :", error);
     }
     setIsScanning(false);
     setIsProcessing(false);
   };
 
   return (
-    <div className="flex flex-col items-center w-full max-w-2xl mx-auto">
+    <div className="flex flex-col items-center w-full max-w-2xl mx-auto bg-transparent">
       <div className="mb-4">
         <h1 className={`${styles.eventName} animate-fade-in`}>{eventName}</h1>
       </div>
 
       <div className={styles.scannerFrame}>
-        <div id={scannerDivId} className="w-full h-full" />
-
-        <div className={styles.scannerGrid}>
-          {Array.from({ length: 9 }).map((_, i) => (
-            <div key={i} />
-          ))}
-        </div>
+        <div
+          id={scannerDivId}
+          className="w-full h-full object-cover m-0 p-0 block"
+        />
 
         {!isScanning && !isProcessing && (
           <div className={styles.scannerOverlay}>
@@ -155,7 +151,7 @@ export default function Scanner({ onScanSuccess }: QrScannerProps) {
           <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-lg">
             <div className="text-white text-center">
               <div className="animate-spin h-8 w-8 border-4 border-white border-t-transparent rounded-full mx-auto mb-2"></div>
-              <p>Processing...</p>
+              <p>Traitement…</p>
             </div>
           </div>
         )}
@@ -166,10 +162,14 @@ export default function Scanner({ onScanSuccess }: QrScannerProps) {
           <Button
             onClick={startScanner}
             disabled={isProcessing}
-            className="bg-billet-bleu hover:bg-billet-bleu/90 text-white w-full cursor-pointer border border-billet-orange"
+            className="bg-billet-bleu hover:bg-billet-bleu/90 text-white w-full cursor-pointer group"
           >
-            <Camera className="mr-2 h-5 w-5 text-white" />
-            <span>Start Scanning</span>
+            <Camera
+              className="mr-2 h-5 w-5 text-white group-hover:-translate-y-0.5
+            group-hover:scale-110 
+            transition-transform ease-in-out duration-75"
+            />
+            <span>Démarrer le scan</span>
           </Button>
         ) : (
           <Button
@@ -179,23 +179,23 @@ export default function Scanner({ onScanSuccess }: QrScannerProps) {
             className="border-billet-orange text-billet-orange hover:bg-billet-orange/10 w-full cursor-pointer"
           >
             <CameraOff className="mr-2 h-5 w-5 text-billet-orange" />
-            <span>Stop Scanning</span>
+            <span>Arrêter le scan</span>
           </Button>
         )}
       </div>
 
       <p className={`${styles.scannerText} text-center`}>
-        Position the QR code within the scanner frame
+        Placez le QR code dans le cadre du scanner
       </p>
 
       {permissionDenied && (
         <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg w-full">
           <h4 className="font-medium text-yellow-800 mb-2">
-            Camera Permission Required
+            Autorisations caméra requises
           </h4>
           <p className="text-sm text-yellow-700">
-            To scan QR codes, please allow camera access in your browser
-            settings and refresh the page.
+            Pour scanner les QR codes, autorisez l’accès à la caméra dans les
+            paramètres de votre navigateur puis rafraîchissez la page.
           </p>
         </div>
       )}
