@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 
 type Stat = {
   type: string;
@@ -21,6 +21,15 @@ export default function Stat() {
         setLoading(false);
       });
   }, []);
+
+  if (!stats || stats.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-full w-full gap-5 mt-50">
+        <AlertCircle className="text-text w-10 h-10" />
+        <p className="text-text text-xl">Aucune donnée disponible</p>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 p-4">
