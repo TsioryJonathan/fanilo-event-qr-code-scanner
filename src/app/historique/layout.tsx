@@ -16,7 +16,7 @@ const quicksand = Quicksand({
 });
 
 export const metadata: Metadata = {
-  title: "Event QR Scanner",
+  title: "Fanilo Fanilo - Scanner QR Code",
   description: "Scan QR codes for event check-in and verification",
 };
 

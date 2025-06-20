@@ -1,7 +1,7 @@
 import NextAuth, { Session } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
-import prisma from "@/lib/prisma"; // Ton client Prisma
+import prisma from "@/lib/prisma"; 
 
 const handler = NextAuth({
   providers: [
@@ -26,7 +26,7 @@ const handler = NextAuth({
         );
         if (!isValid) return null;
 
-        // Retourne l’objet qui sera dans le token
+
         return {
           id: user.id,
           name: user.name,
@@ -37,13 +37,14 @@ const handler = NextAuth({
   ],
 
   session: {
-    strategy: "jwt", // ✅ session persistante par JWT
-    maxAge: 30 * 24 * 60 * 60, // 30 jours
+    strategy: "jwt",         
+    maxAge: 60 * 60 * 24,    
   },
+  
 
   callbacks: {
     async jwt({ token, user }) {
-      // Quand on vient d’autoriser un utilisateur
+     
       if (user) {
         token.id = user.id;
       }
@@ -61,7 +62,7 @@ const handler = NextAuth({
     },
   },
 
-  secret: process.env.NEXTAUTH_SECRET, // Assure-toi que c’est défini
+  secret: process.env.NEXTAUTH_SECRET, 
 });
 
 export { handler as GET, handler as POST };

@@ -109,6 +109,7 @@ function HistoryContent() {
   const { toast } = useToast();
   const router = useRouter();
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const fetchData = useCallback(
     debounce(
       async (params: { start?: string; end?: string; q?: string } = {}) => {

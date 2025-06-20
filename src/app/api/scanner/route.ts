@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// Type explicite pour le billet avec scans
+
 interface TicketWithScans {
   id: number;
   type: string;
@@ -14,7 +14,7 @@ interface TicketWithScans {
 
 export async function POST(request: Request) {
   try {
-    // Récupère le QR code depuis le body
+   
     const { code } = await request.json();
 
     console.log(code);
@@ -26,7 +26,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Cherche le billet dans la base avec ses scans
     const ticket = (await prisma.billet.findUnique({
       where: { code },
       select: {
@@ -48,7 +47,7 @@ export async function POST(request: Request) {
 
     const remainingScans = ticket.scan_limit - ticket.scans_used;
 
-    // Limite atteinte ?
+    
     if (remainingScans <= 0) {
       return NextResponse.json(
         {
@@ -96,7 +95,7 @@ export async function POST(request: Request) {
 
     const newRemaining = updatedTicket.scan_limit - updatedTicket.scans_used;
 
-    // Message utilisateur
+    
     let message = "";
     if (newRemaining === 0) {
       message = "Dernier scan autorisé ! Ce billet ne peut plus être scanné.";
