@@ -1,7 +1,25 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
-import  auth  from "next-auth";
+import auth from "next-auth";
+
+interface ScanResult {
+  id: number;
+  createdAt: string | null;
+  numero: string;
+  type: string;
+  status: string;
+  scanLimit: number;
+  scansUsed: number;
+}
+
+type ScanWithBillet = Prisma.ScanGetPayload<{
+  include: {
+    billet: {
+      select: { numero: true; type: true; scan_limit: true; scans_used: true };
+    };
+  };
+}> & { status: string };
 
 export async function GET(request: Request) {
   const session = await auth;
@@ -32,14 +50,20 @@ export async function GET(request: Request) {
       if (start) {
         if (!isValidDate(start)) {
           console.log("Date de début invalide:", start);
-          return NextResponse.json({ error: "Date de début invalide" }, { status: 400 });
+          return NextResponse.json(
+            { error: "Date de début invalide" },
+            { status: 400 }
+          );
         }
         where.createdAt.gte = new Date(start);
       }
       if (end) {
         if (!isValidDate(end)) {
           console.log("Date de fin invalide:", end);
-          return NextResponse.json({ error: "Date de fin invalide" }, { status: 400 });
+          return NextResponse.json(
+            { error: "Date de fin invalide" },
+            { status: 400 }
+          );
         }
         where.createdAt.lte = new Date(`${end}T23:59:59.999Z`);
       }
@@ -47,7 +71,7 @@ export async function GET(request: Request) {
         console.log("Erreur de validation: start > end", { start, end });
         return NextResponse.json(
           { error: "La date de début doit être antérieure à la date de fin" },
-          { status: 400 },
+          { status: 400 }
         );
       }
     }
@@ -71,18 +95,26 @@ export async function GET(request: Request) {
           select: {
             numero: true,
             type: true,
+            scan_limit: true,
+            scans_used: true,
           },
         },
       },
     });
 
-    console.log("Scans récupérés:", scans.length);
-    const results = scans.map((s) => ({
-      id: s.id,
-      createdAt: s.createdAt ? s.createdAt.toISOString() : null,
-      numero: s.billet?.numero || "Inconnu",
-      type: s.billet?.type || "Inconnu",
-    }));
+    console.log("Scans récupérés:", scans);
+    const results: ScanResult[] = scans.map((s: ScanWithBillet) => {
+      console.log("Scan item:", s);
+      return {
+        id: s.id,
+        createdAt: s.createdAt ? s.createdAt.toISOString() : null,
+        numero: s.billet?.numero || "Inconnu",
+        type: s.billet?.type || "Inconnu",
+        status: s.status,
+        scanLimit: s.billet?.scan_limit || 5,
+        scansUsed: s.billet?.scans_used || 0,
+      };
+    });
 
     return NextResponse.json({ scans: results });
   } catch (error) {
@@ -103,7 +135,7 @@ export async function GET(request: Request) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       return NextResponse.json(
         { error: `Erreur base de données: ${error.message}` },
-        { status: 500 },
+        { status: 500 }
       );
     }
     return NextResponse.json({ error: errorMessage }, { status: 500 });

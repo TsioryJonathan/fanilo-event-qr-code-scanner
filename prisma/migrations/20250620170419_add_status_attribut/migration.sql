@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "Scan" ADD COLUMN     "status" TEXT NOT NULL DEFAULT 'success';
+
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "updatedAt" SET DEFAULT CURRENT_TIMESTAMP;

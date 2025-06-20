@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2, Clock, Search } from "lucide-react";
+import { Loader2, Clock, Search, Check, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ interface ScanItem {
   createdAt: string;
   numero: string;
   type: string;
+  status: string;
 }
 
 function Filters({
@@ -38,7 +39,6 @@ function Filters({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (start && end) {
-      // Utilisation de isAfter de date-fns
       if (isAfter(new Date(start), new Date(end))) {
         toast({
           variant: "destructive",
@@ -48,15 +48,6 @@ function Filters({
         });
         return;
       }
-      // Alternative sans date-fns :
-      // if (new Date(start) > new Date(end)) {
-      //   toast({
-      //     variant: "destructive",
-      //     title: "Erreur",
-      //     description: "La date de début ne peut pas être postérieure à la date de fin.",
-      //   });
-      //   return;
-      // }
     }
     onApply({ start, end, q });
   };
@@ -165,8 +156,7 @@ function HistoryContent() {
   );
 
   useEffect(() => {
-    fetchData(); // Initial fetch
-    // Dépendances intentionnellement limitées au montage initial
+    fetchData();
   }, [fetchData]);
 
   const formatDate = (dateStr: string): string => {
@@ -220,25 +210,37 @@ function HistoryContent() {
                         </p>
                       </div>
                     </div>
-                    <span
-                      className={`text-sm px-2 py-1 rounded-full transition-colors duration-200 ${
-                        scan.type === "Pass 1 jour"
-                          ? "bg-blue-400/20 text-blue-400"
-                          : scan.type === "Pass 3 jours"
-                          ? "bg-green-400/20 text-green-400"
-                          : scan.type === "Pass 5 jours"
-                          ? "bg-yellow-400/20 text-yellow-400"
-                          : scan.type === "Offre Excellence"
-                          ? "bg-orange-400/20 text-orange-400"
-                          : scan.type === "Offre Prestige"
-                          ? "bg-purple-400/20 text-purple-400"
-                          : scan.type === "Offre Lumière"
-                          ? "bg-red-400/20 text-red-400"
-                          : "bg-gray-400/20 text-gray-400"
-                      }`}
-                    >
-                      {scan.type == "Offre LumiŠre" ? "Offre Lumière" : scan.type}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-sm px-2 py-1 rounded-full transition-colors duration-200 ${
+                          scan.type === "Pass 1 jour"
+                            ? "bg-blue-400/20 text-blue-400"
+                            : scan.type === "Pass 3 jours"
+                            ? "bg-green-400/20 text-green-400"
+                            : scan.type === "Pass 5 jours"
+                            ? "bg-yellow-400/20 text-yellow-400"
+                            : scan.type === "Offre Excellence"
+                            ? "bg-orange-400/20 text-orange-400"
+                            : scan.type === "Offre Prestige"
+                            ? "bg-purple-400/20 text-purple-400"
+                            : scan.type === "Offre LumiŠre"
+                            ? "bg-red-400/20 text-red-400"
+                            : "bg-gray-400/20 text-gray-400"
+                        }`}
+                      >
+                        {scan.type == "Offre LumiŠre" ? "Offre Lumière" : scan.type}
+                      </span>
+                      <span
+                        className={`text-sm px-2 py-1 rounded-full ${
+                          scan.status === "failed"
+                            ? "bg-red-500/20 text-red-400"
+                            : "bg-green-500/20 text-green-400"
+                        }`}
+                      >
+                        {scan.status === "failed" ? <X className="w-4 h-4 inline" /> : <Check className="w-4 h-4 inline" />}
+                        {scan.status}
+                      </span>
+                    </div>
                   </li>
                 ))}
               </ul>

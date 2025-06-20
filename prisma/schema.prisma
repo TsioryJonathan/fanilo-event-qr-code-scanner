@@ -23,9 +23,10 @@ model Billet {
 
 model Scan {
   id        Int      @id @default(autoincrement())
-  billetId  Int
-  billet    Billet   @relation(fields: [billetId], references: [id])
+  billetId  Int?     @map("billet_id")
+  billet    Billet?  @relation(fields: [billetId], references: [id])
   createdAt DateTime @default(now())
+  status    String   @default("success")
 }
 
 
