@@ -35,13 +35,9 @@
 }
 
 .scannerIcon {
-<<<<<<< HEAD
-  animation: pulse 1.2s infinite;
-=======
   font-size: 2rem;
   color: white;
   animation: pulse 1.5s ease-in-out infinite;
->>>>>>> develop
 }
 
 
