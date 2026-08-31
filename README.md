@@ -154,7 +154,9 @@ This project is optimized for **Vercel** deployment:
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is open source under the MIT License — feel free to use it as a reference or starting point for your own event ticketing system.
+
+> **Note:** This was built specifically for the Fanilo Festival in Antananarivo, Madagascar. While the code is freely available, it was designed to solve a real, time-sensitive problem — not as a generic SaaS product.
 
 ---
 
