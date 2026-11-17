@@ -22,12 +22,10 @@ Next.js 15, TypeScript, Tailwind CSS 4, shadcn/ui, PostgreSQL with Prisma, NextA
 npm install
 ```
 
-Create `.env.local`:
+Copy `.env.example` to `.env.local` and fill it in:
 
-```
-DATABASE_URL="postgresql://user:password@localhost:5432/fanilo_event"
-NEXTAUTH_SECRET="a-long-random-string"
-NEXTAUTH_URL="http://localhost:3000"
+```bash
+cp .env.example .env.local
 ```
 
 ```bash
